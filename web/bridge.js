@@ -1,5 +1,5 @@
-(function(){'use strict';
-var H=new WeakSet();
+(function(){'use strict';// 注入按钮样式
+var _s=document.createElement('style');_s.textContent='#__qihe_rbtn{display:block!important;margin-top:12px!important;padding:10px!important;border-radius:12px!important;background:linear-gradient(135deg,#3b82f6,#2563eb)!important;color:#fff!important;font-size:14px!important;font-weight:600!important;text-align:center!important;cursor:pointer!important;box-shadow:0 4px 14px rgba(37,99,235,.35)!important}';document.head.appendChild(_s);var H=new WeakSet();
 
 function parseReview(raw){var r=[],bs=raw.split(/\n###\s*\[/);for(var i=1;i<bs.length;i++){var b='['+bs[i],m=b.match(/^\[(高风险|中风险|低风险)\]\s*(.+)/);if(!m)continue;var lv={'高风险':'high','中风险':'mid','低风险':'low'},hd=(m[2]||'').trim(),bm=b.match(/>\s*条款原文[：:]\s*([\s\S]*?)(?=\n\s*风险描述|\n###|$)/),body=bm?bm[1].trim():'',dm=b.match(/风险描述[：:]\s*([\s\S]*?)(?=\n---|\n###\s*\[|\n\*\*律师|$)/),desc=dm?dm[1].trim():'';r.push({heading:hd,body:body,level:lv[m[1]]||'high',riskText:desc});}return r}
 function isReview(t){return /整体风险总结|风险明细|\[高风险\]|\[中风险\]|\[低风险\]/.test(t)}
@@ -25,7 +25,6 @@ function injectBtn(){
   if(!target||target.textContent===_lastInj) return;
   _lastInj=target.textContent;
   var btn=document.createElement('div');btn.id='__qihe_rbtn';btn.textContent='查看风险报告';
-  btn.style.cssText='margin-top:12px;padding:10px;border-radius:12px;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;font-size:14px;font-weight:600;text-align:center;cursor:pointer;box-shadow:0 4px 14px rgba(37,99,235,0.35);display:block;';
   btn.addEventListener('click',function(){if(I&&I.setState)I.setState({chatOpen:false})});
   target.appendChild(btn);
   // 同时挂在window上供外部调用
