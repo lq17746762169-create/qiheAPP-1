@@ -37,6 +37,8 @@ app.use('/api/export-docx', exportRouter);
 app.use('/api/templates', templatesRouter);
 
 // 同源托管前端：App 移动端 + Web 桌面端
+// App 同时映射到 / 和 /app，确保相对路径资源正确加载
+app.use(express.static(APP_DIR));
 app.use('/app', express.static(APP_DIR));
 app.use('/web', express.static(WEB_DIR));
 app.get('/', (req, res) => res.sendFile(path.join(APP_DIR, 'index.html')));
