@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  ::placeholder { color: #9aa2b1; }
+  textarea:focus { outline: none; }
+</style>
+</helmet>
+<div style="min-height: 812px; width: 100%; background: #f4f5f7; font-family: 'Noto Sans SC', -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; color: #1a1f2e; display: flex; flex-direction: column;">
+
+  <!-- Top nav -->
+  <header style="height: 60px; flex: 0 0 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 32px; background: rgba(244,245,247,0.85); backdrop-filter: blur(8px); border-bottom: 1px solid #ebedf0;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <div style="width: 30px; height: 30px; border-radius: 8px; background: #1b2a4e; display: flex; align-items: center; justify-content: center;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v5h5"></path><path d="M6 3h9l5 5v11a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"></path><path d="M9 13h6M9 16h4"></path></svg>
+      </div>
+      <span style="font-size: 16px; font-weight: 700; letter-spacing: 0.02em;">合同助手</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 20px;">
+      <span style="font-size: 14px; color: #4a5262; cursor: pointer;">最近文档</span>
+      <div style="width: 34px; height: 34px; border-radius: 50%; background: #dfe3ea; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; font-weight: 500; color: #4a5262;">林</div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main style="flex: 1; display: flex; flex-direction: column; align-items: center; padding: 56px 24px 24px; width: 100%;">
+    <div style="width: 100%; max-width: 760px; display: flex; flex-direction: column; align-items: center;">
+
+      <h1 style="margin: 0; font-size: 30px; font-weight: 700; letter-spacing: 0.01em; text-align: center; line-height: 1.35;">今天需要拟定还是审查合同？</h1>
+      <p style="margin: 12px 0 0; font-size: 15px; color: #6b7280; text-align: center;">描述需求生成新合同，或上传文件进行风险审查</p>
+
+      <!-- Feature cards -->
+      <div style="width: 100%; margin-top: 36px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+
+        <div onClick="{{ pickDraft }}" style="{{ cardAStyle }}" onMouseEnter="{{ hoverA }}" onMouseLeave="{{ unhover }}">
+          <div style="width: 42px; height: 42px; border-radius: 11px; background: #eef1f7; display: flex; align-items: center; justify-content: center; flex: 0 0 auto;">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#1b2a4e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M15 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M12 11v6M9 14h6"></path></svg>
+          </div>
+          <div>
+            <div style="font-size: 16px; font-weight: 700;">拟定合同</div>
+            <div style="font-size: 13px; color: #6b7280; margin-top: 4px; line-height: 1.5;">用一句话生成专业合同</div>
+          </div>
+        </div>
+
+        <div onClick="{{ pickReview }}" style="{{ cardBStyle }}" onMouseEnter="{{ hoverB }}" onMouseLeave="{{ unhover }}">
+          <div style="width: 42px; height: 42px; border-radius: 11px; background: #eef1f7; display: flex; align-items: center; justify-content: center; flex: 0 0 auto;">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#1b2a4e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.4-3 8.3-7 9.5C8 19.3 5 15.4 5 11V6z"></path><path d="M10.5 11.5l1.2 1.2 2.3-2.5"></path></svg>
+          </div>
+          <div>
+            <div style="font-size: 16px; font-weight: 700;">审查合同</div>
+            <div style="font-size: 13px; color: #6b7280; margin-top: 4px; line-height: 1.5;">上传文件，AI 标注风险点</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Core input box (focal point) -->
+      <div style="{{ inputBoxStyle }}" onDragOver="{{ onDragOver }}" onDragLeave="{{ onDragLeave }}" onDrop="{{ onDrop }}">
+        <textarea value="{{ text }}" onChange="{{ onInput }}" rows="2" placeholder="描述你要的合同，或上传文件让我审查…" style="width: 100%; border: none; resize: none; font-family: inherit; font-size: 16px; line-height: 1.6; color: #1a1f2e; background: transparent; padding: 4px 2px; min-height: 52px;"></textarea>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 6px;">
+          <button style="width: 38px; height: 38px; border-radius: 10px; border: 1px solid #e2e5ea; background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #4a5262;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+          </button>
+          <button style="{{ sendStyle }}">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V6M6 12l6-6 6 6"></path></svg>
+          </button>
+        </div>
+        <sc-if value="{{ dragging }}" hint-placeholder-val="{{ false }}">
+          <div style="position: absolute; inset: 0; border-radius: 18px; background: rgba(27,42,78,0.06); border: 2px dashed #1b2a4e; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 500; color: #1b2a4e; pointer-events: none;">松开以上传文件进行审查</div>
+        </sc-if>
+      </div>
+
+      <!-- Chips -->
+      <div style="width: 100%; margin-top: 18px; display: flex; flex-wrap: wrap; gap: 10px;">
+        <sc-for list="{{ chips }}" as="chip" hint-placeholder-count="5">
+          <button onClick="{{ chip.onClick }}" style="padding: 8px 15px; border-radius: 999px; border: 1px solid #e5e7eb; background: #fff; font-family: inherit; font-size: 13.5px; color: #4a5262; cursor: pointer;" style-hover="border-color:#c3ccdb;color:#1b2a4e;background:#fbfcfe;">{{ chip.label }}</button>
+        </sc-for>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer style="flex: 0 0 auto; padding: 20px 24px 24px; text-align: center;">
+    <span style="font-size: 12px; color: #9aa2b1; line-height: 1.6;">资料全程加密，不用于模型训练 · AI 生成内容仅供参考，不构成法律意见</span>
+  </footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 750, &quot;height&quot;: 812}}">
+class Component extends DCLogic {
+  state = { text: "", hoverA: false, hoverB: false, dragging: false, focus: false };
+
+  renderVals() {
+    const primary = "#1b2a4e";
+    const chipLabels = ["租房合同", "劳务协议", "保密协议", "股权转让", "借款协议"];
+    const cardBase = "background:#fff;border-radius:16px;padding:20px;display:flex;gap:16px;align-items:center;cursor:pointer;box-shadow:0 1px 2px rgba(16,24,40,0.04);transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;";
+    const cardHover = "transform:translateY(-3px);border:1px solid " + primary + ";box-shadow:0 10px 24px rgba(16,24,40,0.10);";
+    const cardIdle = "border:1px solid #ebedf0;";
+    const hasText = this.state.text.trim().length > 0;
+
+    return {
+      text: this.state.text,
+      dragging: this.state.dragging,
+      onInput: (e) => this.setState({ text: e.target.value }),
+
+      cardAStyle: cardBase + (this.state.hoverA ? cardHover : cardIdle),
+      cardBStyle: cardBase + (this.state.hoverB ? cardHover : cardIdle),
+      hoverA: () => this.setState({ hoverA: true }),
+      hoverB: () => this.setState({ hoverB: true }),
+      unhover: () => this.setState({ hoverA: false, hoverB: false }),
+      pickDraft: () => this.setState({ text: "帮我拟定一份" }),
+      pickReview: () => this.setState({ text: "" }),
+
+      inputBoxStyle: "position:relative;width:100%;margin-top:28px;background:#fff;border-radius:18px;padding:16px 16px 12px;box-shadow:0 6px 24px rgba(16,24,40,0.08);transition:border-color .18s ease,box-shadow .18s ease;"
+        + "border:1.5px solid " + (this.state.dragging || this.state.focus ? primary : "#e2e5ea") + ";",
+
+      sendStyle: "width:38px;height:38px;border-radius:10px;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:opacity .18s ease;"
+        + "background:" + primary + ";opacity:" + (hasText ? "1" : "0.85") + ";",
+
+      onDragOver: (e) => { e.preventDefault(); if (!this.state.dragging) this.setState({ dragging: true }); },
+      onDragLeave: (e) => { e.preventDefault(); this.setState({ dragging: false }); },
+      onDrop: (e) => {
+        e.preventDefault();
+        const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        this.setState({ dragging: false, text: f ? ("审查文件：" + f.name) : this.state.text });
+      },
+
+      chips: chipLabels.map((label) => ({
+        label,
+        onClick: () => this.setState({ text: "帮我拟定一份" + label }),
+      })),
+    };
+  }
+}
+</script>
+</body>
+</html>

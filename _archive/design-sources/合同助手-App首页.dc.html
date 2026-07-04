@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<template id="__bundler_thumbnail" data-bg-color="#2563eb">
+  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+    <rect width="1200" height="800" fill="#2563eb"/>
+    <g fill="none" stroke="#ffffff" stroke-width="34" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M600 250l150 56v128c0 92-64 168-150 190-86-22-150-98-150-190V306z"/>
+      <path d="M535 466l48 48 92-96"/>
+    </g>
+  </svg>
+</template>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&amp;display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #e9eef5; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 32px; }
+  ::placeholder { color: #9aa8c2; }
+  textarea:focus { outline: none; }
+  .noscroll::-webkit-scrollbar { display: none; }
+  @keyframes qhFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+  @keyframes qhDot { 0%, 100% { transform: scale(0.7); opacity: 0.6; } 50% { transform: scale(1.15); opacity: 1; } }
+  @keyframes qhBar { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
+  @keyframes qhReady { 0%, 100% { box-shadow: 0 6px 16px rgba(37,99,235,0.42); } 50% { box-shadow: 0 6px 22px rgba(37,99,235,0.62); } }
+  @keyframes qhTyping { 0%, 60%, 100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-4px); opacity: 1; } }
+  @keyframes qhSplashLogo { 0% { transform: scale(0.7); opacity: 0; } 55% { transform: scale(1.06); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+  @keyframes qhSplashText { 0% { transform: translateY(10px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
+  @keyframes qhSplashRing { 0% { transform: scale(0.85); opacity: 0.55; } 100% { transform: scale(1.4); opacity: 0; } }
+  @keyframes qhLoadBar { 0% { transform: translateX(-100%); } 100% { transform: translateX(150%); } }
+  @keyframes qhSpin { to { transform: rotate(360deg); } }
+  @keyframes qhWave { 0%, 100% { transform: scaleY(0.35); } 50% { transform: scaleY(1); } }
+  @keyframes qhMicPulse { 0% { box-shadow: 0 0 0 0 rgba(37,99,235,0.35); } 70% { box-shadow: 0 0 0 18px rgba(37,99,235,0); } 100% { box-shadow: 0 0 0 0 rgba(37,99,235,0); } }
+</style>
+</helmet>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" status-bar="{{ false }}" hint-size="402px,874px">
+
+<div style="height: 100%; display: flex; flex-direction: column; font-family: 'PingFang SC', 'Noto Sans SC', -apple-system, system-ui, sans-serif; position: relative; background: linear-gradient(180deg, #d8e8ff 0%, #e4eeff 22%, #eef4ff 50%, #f7fbff 100%); overflow: hidden;">
+
+  <!-- ============ SPLASH ============ -->
+  <sc-if value="{{ splashVisible }}" hint-placeholder-val="{{ true }}">
+    <div onClick="{{ enterApp }}" style="{{ splashStyle }}">
+      <div style="position: absolute; top: -60px; right: -70px; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, rgba(255,255,255,0.7), rgba(147,197,253,0.5) 45%, rgba(37,99,235,0) 75%); pointer-events: none;"></div>
+      <div style="position: absolute; bottom: -80px; left: -70px; width: 280px; height: 280px; border-radius: 50%; background: radial-gradient(circle, rgba(96,165,250,0.35), rgba(96,165,250,0) 70%); pointer-events: none;"></div>
+
+      <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; z-index: 1;">
+        <div style="position: relative; width: 130px; height: 130px; display: flex; align-items: center; justify-content: center;">
+          <div style="position: absolute; inset: 0; border-radius: 34px; border: 2px solid rgba(255,255,255,0.6); animation: qhSplashRing 2.4s ease-out infinite;"></div>
+          <div style="position: absolute; inset: 0; border-radius: 34px; border: 2px solid rgba(255,255,255,0.4); animation: qhSplashRing 2.4s ease-out infinite; animation-delay: 1.2s;"></div>
+          <div style="width: 104px; height: 104px; border-radius: 30px; background: linear-gradient(150deg, #7db2ff, #2563eb 55%, #1b3ba8); display: flex; align-items: center; justify-content: center; box-shadow: 0 24px 48px rgba(37,99,235,0.5), inset 0 2px 3px rgba(255,255,255,0.6), inset 0 -6px 12px rgba(20,45,120,0.5); animation: qhSplashLogo 0.9s cubic-bezier(0.34,1.56,0.64,1) both;">
+            <svg width="58" height="58" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 2.6v5.6c0 4.3-3 7.8-7 8.8-4-1-7-4.5-7-8.8V5.6z"></path><path d="M8.8 12l2.2 2.2 4.2-4.4"></path></svg>
+          </div>
+        </div>
+        <div style="margin-top: 26px; font-size: 30px; font-weight: 900; color: #16233d; letter-spacing: 0.24em; text-indent: 0.24em; animation: qhSplashText 0.7s ease-out 0.3s both;">契合</div>
+        <div style="margin-top: 12px; font-size: 15px; font-weight: 500; color: #5b6b86; letter-spacing: 0.08em; animation: qhSplashText 0.7s ease-out 0.5s both;">专业严谨的 AI 合同助手</div>
+      </div>
+
+      <div style="position: relative; z-index: 1; padding-bottom: 54px; display: flex; flex-direction: column; align-items: center; gap: 16px;">
+        <div style="width: 120px; height: 3px; border-radius: 3px; background: rgba(37,99,235,0.14); overflow: hidden;">
+          <div style="width: 45%; height: 100%; border-radius: 3px; background: linear-gradient(90deg, rgba(37,99,235,0), #2563eb, rgba(37,99,235,0)); animation: qhLoadBar 1.3s ease-in-out infinite;"></div>
+        </div>
+        <div style="font-size: 14px; color: #9aa8bf; letter-spacing: 0.04em;">点击任意处进入</div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ambient depth -->
+  <div style="position: absolute; top: -50px; right: -60px; width: 250px; height: 250px; border-radius: 50%; background: radial-gradient(circle at 34% 30%, rgba(255,255,255,0.9), rgba(147,197,253,0.55) 45%, rgba(59,130,246,0.28) 72%, rgba(37,99,235,0) 100%); pointer-events: none;"></div>
+  <div style="position: absolute; top: 320px; left: -80px; width: 210px; height: 210px; border-radius: 50%; background: radial-gradient(circle, rgba(96,165,250,0.2), rgba(96,165,250,0) 70%); pointer-events: none;"></div>
+
+  <!-- ============ HOME ============ -->
+  <div class="noscroll" style="flex: 1; overflow-y: auto; padding: 56px 20px 46px; position: relative; z-index: 1;">
+
+    <!-- top bar: logo -->
+    <div style="display: flex; align-items: center; gap: 11px;">
+      <div style="width: 38px; height: 38px; border-radius: 12px; background: linear-gradient(150deg, #4c93ff, #2563eb 55%, #1b3ba8); display: flex; align-items: center; justify-content: center; box-shadow: 0 7px 16px rgba(37,99,235,0.42), inset 0 1.5px 2px rgba(255,255,255,0.6), inset 0 -3px 6px rgba(20,45,120,0.45);">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 2.6v5.6c0 4.3-3 7.8-7 8.8-4-1-7-4.5-7-8.8V5.6z"></path><path d="M8.8 12l2.2 2.2 4.2-4.4"></path></svg>
+      </div>
+      <span style="font-size: 21px; font-weight: 800; color: #16233d; letter-spacing: 0.1em;">契合</span>
+    </div>
+
+    <!-- hero: promo copy + robot IP -->
+    <div style="margin-top: 20px; display: flex; align-items: flex-start; justify-content: space-between; gap: 4px;">
+      <div style="flex: 1; min-width: 0; padding-top: 4px;">
+        <div style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 999px; background: linear-gradient(135deg, #dbf5f2, #e8f7ee); border: 1px solid rgba(255,255,255,0.9); box-shadow: 0 4px 12px rgba(8,145,178,0.12); margin-bottom: 14px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0e7490" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3l1.4 4.1L18.5 8.5 14.4 9.9 13 14l-1.4-4.1L7.5 8.5l4.1-1.4z"></path><path d="M6 14l.7 2 2 .7-2 .7L6 19.4l-.7-2-2-.7 2-.7z"></path></svg>
+          <span style="font-size: 14px; font-weight: 700; color: #0e7490;">专属法务助手</span>
+        </div>
+        <h1 style="margin: 0; font-size: 27px; font-weight: 900; line-height: 1.42; color: #14203a; letter-spacing: 0.01em;">拟合同、审风险<br>一句话就够了</h1>
+        <p style="margin: 12px 0 0; font-size: 14px; line-height: 1.6; color: #64748b; max-width: 210px;">专业严谨、全程加密</p>
+      </div>
+
+      <!-- robot IP 小契 -->
+      <div style="flex: 0 0 auto; width: 120px; position: relative;">
+        <div style="position: absolute; top: 4px; left: -20px; white-space: nowrap; background: #fff; border-radius: 13px 13px 13px 3px; padding: 7px 12px; font-size: 14px; font-weight: 600; color: #1e40af; box-shadow: 0 6px 16px rgba(37,99,235,0.22); z-index: 4;">你好，我是小契~</div>
+        <div style="position: relative; width: 120px; height: 150px; margin-top: 30px;">
+          <div style="animation: qhFloat 4s ease-in-out infinite;">
+            <!-- sparkle -->
+            <div style="position: absolute; top: 8px; right: 10px; z-index: 3;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="#7fb0ff" style="filter: drop-shadow(0 0 4px rgba(74,134,238,0.8));"><path d="M12 2l1.6 6.4L20 10l-6.4 1.6L12 18l-1.6-6.4L4 10l6.4-1.6z"></path></svg>
+            </div>
+            <!-- round body -->
+            <div style="position: relative; width: 110px; height: 110px; margin: 0 auto; border-radius: 50%; background: radial-gradient(circle at 33% 24%, #ffffff, #d3e7ff 20%, #8fbcff 48%, #4a86ee 76%, #2f63d4 100%); box-shadow: 0 20px 32px rgba(43,98,212,0.4), inset -9px -13px 22px rgba(20,60,150,0.3), inset 9px 12px 20px rgba(255,255,255,0.82);">
+              <!-- top gloss -->
+              <div style="position: absolute; top: 15px; left: 24px; width: 34px; height: 18px; border-radius: 50%; background: rgba(255,255,255,0.72); filter: blur(5px);"></div>
+              <!-- eyes -->
+              <div style="position: absolute; top: 40px; left: 0; right: 0; display: flex; align-items: center; justify-content: center; gap: 18px;">
+                <div style="width: 16px; height: 19px; border-radius: 50%; background: #fff; box-shadow: inset 0 -2px 3px rgba(20,60,150,0.2); position: relative;">
+                  <div style="position: absolute; top: 4px; left: 4px; width: 9px; height: 11px; border-radius: 50%; background: #17264a;"></div>
+                  <div style="position: absolute; top: 5px; left: 6px; width: 3.5px; height: 3.5px; border-radius: 50%; background: #fff;"></div>
+                </div>
+                <div style="width: 16px; height: 19px; border-radius: 50%; background: #fff; box-shadow: inset 0 -2px 3px rgba(20,60,150,0.2); position: relative;">
+                  <div style="position: absolute; top: 4px; left: 4px; width: 9px; height: 11px; border-radius: 50%; background: #17264a;"></div>
+                  <div style="position: absolute; top: 5px; left: 6px; width: 3.5px; height: 3.5px; border-radius: 50%; background: #fff;"></div>
+                </div>
+              </div>
+              <!-- smile -->
+              <div style="position: absolute; top: 66px; left: 50%; transform: translateX(-50%); width: 20px; height: 10px; border: 3px solid #17264a; border-top: none; border-radius: 0 0 20px 20px;"></div>
+              <!-- blush -->
+              <div style="position: absolute; top: 60px; left: 22px; width: 11px; height: 6px; border-radius: 50%; background: rgba(255,120,140,0.5); filter: blur(1.5px);"></div>
+              <div style="position: absolute; top: 60px; right: 22px; width: 11px; height: 6px; border-radius: 50%; background: rgba(255,120,140,0.5); filter: blur(1.5px);"></div>
+            </div>
+            <!-- arms -->
+            <div style="position: absolute; left: 8px; top: 72px; width: 9px; height: 22px; border-radius: 5px; background: linear-gradient(#cfe1ff,#6ea3f5); box-shadow: inset 0 1px 1px rgba(255,255,255,0.5); transform: rotate(20deg);"></div>
+            <div style="position: absolute; right: 8px; top: 72px; width: 9px; height: 22px; border-radius: 5px; background: linear-gradient(#cfe1ff,#6ea3f5); box-shadow: inset 0 1px 1px rgba(255,255,255,0.5); transform: rotate(-20deg);"></div>
+          </div>
+          <div style="width: 66px; height: 10px; margin: 12px auto 0; border-radius: 50%; background: rgba(43,98,212,0.16); filter: blur(4px);"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- primary function cards -->
+    <div style="margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 13px;">
+
+      <!-- 拟定合同 -->
+      <div onClick="{{ draftFlow }}" style="position: relative; overflow: hidden; border-radius: 22px; padding: 18px; min-height: 150px; cursor: pointer; background: linear-gradient(158deg, #d9e8ff 0%, #f3f7ff 76%); border: 1px solid rgba(255,255,255,0.95); box-shadow: 0 16px 32px rgba(37,99,235,0.16), inset 0 1px 1px rgba(255,255,255,0.95); transition: transform .18s ease, box-shadow .18s ease;" style-active="transform:translateY(-3px);box-shadow:0 22px 42px rgba(37,99,235,0.24);">
+        <svg width="104" height="104" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;right:-16px;bottom:-18px;opacity:0.1;"><path d="M14 3v4a1 1 0 0 0 1 1h4M15 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M9 13h6M9 16.5h4"></path></svg>
+        <div style="width: 50px; height: 50px; border-radius: 16px; background: linear-gradient(155deg, #4c93ff, #2563eb); display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 20px rgba(37,99,235,0.4), inset 0 1.5px 2px rgba(255,255,255,0.5), inset 0 -4px 7px rgba(20,45,120,0.4);">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M15 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M12 11v6M9 14h6"></path></svg>
+        </div>
+        <div style="font-size: 17px; font-weight: 700; color: #14203a; margin-top: 18px;">拟定合同</div>
+        <div style="font-size: 14px; color: #5b6b86; margin-top: 4px; line-height: 1.5;">一句话生成合同</div>
+        <div style="display: flex; align-items: center; gap: 3px; margin-top: 10px; font-size: 14px; font-weight: 600; color: #2563eb;">开始拟定
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+        </div>
+      </div>
+
+      <!-- 审查合同 -->
+      <div onClick="{{ reviewFlow }}" style="position: relative; overflow: hidden; border-radius: 22px; padding: 18px; min-height: 150px; cursor: pointer; background: linear-gradient(158deg, #ccf1f7 0%, #f0fdff 76%); border: 1px solid rgba(255,255,255,0.95); box-shadow: 0 16px 32px rgba(8,145,178,0.15), inset 0 1px 1px rgba(255,255,255,0.95); transition: transform .18s ease, box-shadow .18s ease;" style-active="transform:translateY(-3px);box-shadow:0 22px 42px rgba(8,145,178,0.22);">
+        <svg width="104" height="104" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;right:-16px;bottom:-18px;opacity:0.11;"><path d="M12 3l7 3v5c0 4.4-3 8.3-7 9.5C8 19.3 5 15.4 5 11V6z"></path><path d="M9.5 11.5l1.6 1.6 3-3.2"></path></svg>
+        <div style="width: 50px; height: 50px; border-radius: 16px; background: linear-gradient(155deg, #22c3d6, #0891b2); display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 20px rgba(8,145,178,0.38), inset 0 1.5px 2px rgba(255,255,255,0.5), inset 0 -4px 7px rgba(8,90,110,0.4);">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.4-3 8.3-7 9.5C8 19.3 5 15.4 5 11V6z"></path><path d="M10.5 11.5l1.2 1.2 2.3-2.5"></path></svg>
+        </div>
+        <div style="font-size: 17px; font-weight: 700; color: #14203a; margin-top: 18px;">审查合同</div>
+        <div style="font-size: 14px; color: #5b6b86; margin-top: 4px; line-height: 1.5;">上传文件标注风险</div>
+        <div style="display: flex; align-items: center; gap: 3px; margin-top: 10px; font-size: 14px; font-weight: 600; color: #0891b2;">开始审查
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- core input (focal point) -->
+    <div style="{{ inputBoxStyle }}" onDragOver="{{ onDragOver }}" onDragLeave="{{ onDragLeave }}" onDrop="{{ onDrop }}">
+      <sc-if value="{{ hasAttachments }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 10px;">
+          <sc-for list="{{ attachments }}" as="att" hint-placeholder-count="1">
+            <div style="display: flex; align-items: center; gap: 7px; background: linear-gradient(150deg,#eaf2ff,#f2f7ff); border: 1px solid #d5e3fb; border-radius: 11px; padding: 6px 8px 6px 9px; max-width: 200px;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto;"><path d="M14 3v4a1 1 0 0 0 1 1h4M15 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path></svg>
+              <span style="font-size: 13px; color: #1f2b45; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ att.name }}</span>
+              <button onClick="{{ att.remove }}" style="width: 18px; height: 18px; border-radius: 50%; border: none; background: rgba(37,99,235,0.14); display: flex; align-items: center; justify-content: center; cursor: pointer; flex: 0 0 auto;">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+              </button>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <div style="display: flex; align-items: flex-start; gap: 8px;">
+        <sc-if value="{{ showBar }}" hint-placeholder-val="{{ false }}">
+          <div style="width: 2.5px; height: 20px; border-radius: 2px; background: #2563eb; margin-top: 3px; animation: qhBar 1.1s ease-in-out infinite; flex: 0 0 auto;"></div>
+        </sc-if>
+        <textarea value="{{ text }}" onChange="{{ onInput }}" onKeyDown="{{ onKeyDown }}" onFocus="{{ onFocus }}" onBlur="{{ onBlur }}" rows="2" placeholder="{{ placeholder }}" style="flex: 1; border: none; resize: none; font-family: inherit; font-size: 15px; line-height: 1.6; color: #14203a; background: transparent; min-height: 46px;"></textarea>
+        <sc-if value="{{ hasText }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ clear }}" style="width: 22px; height: 22px; border-radius: 50%; border: none; background: rgba(100,116,139,0.14); display: flex; align-items: center; justify-content: center; cursor: pointer; flex: 0 0 auto; margin-top: 2px;">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+          </button>
+        </sc-if>
+      </div>
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+        <div style="display: flex; align-items: center; gap: 9px;">
+          <button onClick="{{ pickHomeFile }}" style="width: 38px; height: 38px; border-radius: 12px; border: 1px solid rgba(37,99,235,0.2); background: rgba(255,255,255,0.85); display: flex; align-items: center; justify-content: center; cursor: pointer; color: #2563eb;" style-active="transform:scale(0.94);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+          </button>
+          <input ref="{{ homeFileRef }}" type="file" accept=".pdf,.doc,.docx,image/*" multiple="{{ true }}" onChange="{{ onHomeFilePicked }}" style="display: none;">
+          <span style="font-size: 14px; color: #94a3b8;">{{ helperText }}</span>
+        </div>
+        <button onClick="{{ sendHome }}" style="{{ sendStyle }}">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V6M6 12l6-6 6 6"></path></svg>
+        </button>
+      </div>
+      <sc-if value="{{ dragging }}" hint-placeholder-val="{{ false }}">
+        <div style="position: absolute; inset: 0; border-radius: 20px; background: rgba(37,99,235,0.09); border: 2px dashed #2563eb; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; color: #1e40af;">松开上传，小契帮你审查风险</div>
+      </sc-if>
+    </div>
+
+    <!-- 最近记录 -->
+    <div style="margin-top: 26px; display: flex; align-items: center; justify-content: space-between;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="width: 3px; height: 15px; border-radius: 2px; background: linear-gradient(#3b82f6,#38bdf8);"></span>
+        <span style="font-size: 15px; font-weight: 700; color: #14203a;">最近记录</span>
+      </div>
+      <span style="font-size: 13px; color: #94a3b8;">共 {{ recordCount }} 份</span>
+    </div>
+    <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 11px;">
+      <sc-for list="{{ records }}" as="rec" hint-placeholder-count="3">
+        <div onClick="{{ rec.open }}" style="display: flex; align-items: center; gap: 13px; background: rgba(255,255,255,0.78); backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.9); border-radius: 16px; padding: 14px; box-shadow: 0 6px 18px rgba(37,99,235,0.06); cursor: pointer;" style-active="transform:translateY(-2px);">
+          <div style="width: 44px; height: 44px; border-radius: 13px; background: linear-gradient(150deg, #e0edff, #f0f6ff); display: flex; align-items: center; justify-content: center; flex: 0 0 auto;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4M15 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M9 13h6M9 16.5h4"></path></svg>
+          </div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 15px; font-weight: 600; color: #14203a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ rec.title }}</div>
+            <div style="font-size: 13px; color: #94a3b8; margin-top: 3px;">{{ rec.time }}</div>
+          </div>
+          <span style="{{ rec.badgeStyle }}">{{ rec.badge }}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- product capabilities — informational panel (non-clickable) -->
+    <div style="margin-top: 26px; display: flex; align-items: center; gap: 8px;">
+      <span style="width: 3px; height: 15px; border-radius: 2px; background: linear-gradient(#3b82f6,#38bdf8);"></span>
+      <span style="font-size: 15px; font-weight: 700; color: #14203a;">契合能帮你做什么</span>
+    </div>
+    <div style="margin-top: 12px; background: rgba(255,255,255,0.5); backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.85); border-radius: 18px; box-shadow: 0 5px 16px rgba(37,99,235,0.06); overflow: hidden; display: grid; grid-template-columns: 1fr 1fr;">
+      <div style="display: flex; gap: 11px; align-items: flex-start; padding: 15px; border-right: 1px solid rgba(37,99,235,0.08); border-bottom: 1px solid rgba(37,99,235,0.08);">
+        <div style="width: 34px; height: 34px; border-radius: 11px; background: linear-gradient(160deg,#eaf2ff,#c9dcfb); display: flex; align-items: center; justify-content: center; box-shadow: inset 0 1.5px 2px rgba(255,255,255,0.95), inset 0 -2px 4px rgba(37,99,235,0.14); flex: 0 0 auto;">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+        </div>
+        <div style="min-width: 0;">
+          <div style="font-size: 13px; font-weight: 700; color: #14203a;">智能起草</div>
+          <div style="font-size: 10.5px; color: #6b7890; margin-top: 3px; line-height: 1.5;">生成条款完整的合同</div>
+        </div>
+      </div>
+      <div style="display: flex; gap: 11px; align-items: flex-start; padding: 15px; border-bottom: 1px solid rgba(37,99,235,0.08);">
+        <div style="width: 34px; height: 34px; border-radius: 11px; background: linear-gradient(160deg,#e3f8fb,#c2eef4); display: flex; align-items: center; justify-content: center; box-shadow: inset 0 1.5px 2px rgba(255,255,255,0.95), inset 0 -2px 4px rgba(8,145,178,0.14); flex: 0 0 auto;">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.4-3 8.3-7 9.5C8 19.3 5 15.4 5 11V6zM10.5 11.5l1.2 1.2 2.3-2.5"></path></svg>
+        </div>
+        <div style="min-width: 0;">
+          <div style="font-size: 13px; font-weight: 700; color: #14203a;">风险审查</div>
+          <div style="font-size: 10.5px; color: #6b7890; margin-top: 3px; line-height: 1.5;">逐条标注不利条款</div>
+        </div>
+      </div>
+      <div style="display: flex; gap: 11px; align-items: flex-start; padding: 15px; border-right: 1px solid rgba(37,99,235,0.08);">
+        <div style="width: 34px; height: 34px; border-radius: 11px; background: linear-gradient(160deg,#efeeff,#dcd9fb); display: flex; align-items: center; justify-content: center; box-shadow: inset 0 1.5px 2px rgba(255,255,255,0.95), inset 0 -2px 4px rgba(99,102,241,0.14); flex: 0 0 auto;">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.3 7.3L4 21l1.7-5.7A8 8 0 1 1 21 12z"></path></svg>
+        </div>
+        <div style="min-width: 0;">
+          <div style="font-size: 13px; font-weight: 700; color: #14203a;">条款解读</div>
+          <div style="font-size: 10.5px; color: #6b7890; margin-top: 3px; line-height: 1.5;">大白话解释术语</div>
+        </div>
+      </div>
+      <div style="display: flex; gap: 11px; align-items: flex-start; padding: 15px;">
+        <div style="width: 34px; height: 34px; border-radius: 11px; background: linear-gradient(160deg,#e7faee,#cdf3da); display: flex; align-items: center; justify-content: center; box-shadow: inset 0 1.5px 2px rgba(255,255,255,0.95), inset 0 -2px 4px rgba(22,163,74,0.14); flex: 0 0 auto;">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M8.5 12l2.3 2.3L15.5 9.5"></path></svg>
+        </div>
+        <div style="min-width: 0;">
+          <div style="font-size: 13px; font-weight: 700; color: #14203a;">合规校验</div>
+          <div style="font-size: 10.5px; color: #6b7890; margin-top: 3px; line-height: 1.5;">对照法规查漏补缺</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- trust banner -->
+    <div style="margin-top: 16px; display: flex; align-items: center; gap: 11px; background: linear-gradient(135deg, rgba(219,234,254,0.7), rgba(255,255,255,0.5)); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.95); border-radius: 16px; padding: 13px 15px; box-shadow: 0 5px 16px rgba(37,99,235,0.07);">
+      <div style="width: 36px; height: 36px; border-radius: 11px; background: linear-gradient(160deg,#ffffff,#dbeafe); display: flex; align-items: center; justify-content: center; flex: 0 0 auto; box-shadow: 0 5px 12px rgba(37,99,235,0.2), inset 0 1.5px 2px rgba(255,255,255,0.95);">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2.5"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg>
+      </div>
+      <div>
+        <div style="font-size: 15px; font-weight: 700; color: #14203a;">银行级加密保护</div>
+        <div style="font-size: 14px; color: #64748b; margin-top: 2px;">资料全程加密，不用于模型训练</div>
+      </div>
+    </div>
+
+    <p style="margin: 20px 0 8px; text-align: center; font-size: 14px; line-height: 1.6; color: #9aa8bf;">AI 生成内容仅供参考，不构成法律意见</p>
+
+  </div>
+
+  <!-- ============ CHAT OVERLAY ============ -->
+  <div style="{{ chatOverlayStyle }}">
+    <!-- chat header -->
+    <div style="flex: 0 0 auto; padding: 52px 14px 12px; display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.7); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(37,99,235,0.08);">
+      <button onClick="{{ closeChat }}" style="width: 34px; height: 34px; border: none; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1f2b45" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"></path></svg>
+      </button>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 16px; font-weight: 700; color: #16233d;">小契 · 智能助手</span>
+      </div>
+      <div style="width: 34px; height: 34px; flex: 0 0 auto;"></div>
+    </div>
+
+    <!-- messages -->
+    <div class="noscroll" style="flex: 1; overflow-y: auto; padding: 18px 16px; display: flex; flex-direction: column; gap: 14px;">
+      <sc-for list="{{ msgs }}" as="msg" hint-placeholder-count="0">
+        <div style="{{ msg.rowStyle }}">
+          <sc-if value="{{ msg.isAi }}" hint-placeholder-val="{{ true }}">
+            <div style="width: 32px; height: 32px; border-radius: 50%; flex: 0 0 auto; position: relative; background: radial-gradient(circle at 33% 24%, #ffffff, #d3e7ff 20%, #8fbcff 48%, #4a86ee 76%, #2f63d4 100%); box-shadow: 0 3px 8px rgba(43,98,212,0.35), inset -2px -3px 5px rgba(20,60,150,0.28), inset 2px 3px 5px rgba(255,255,255,0.8);">
+              <div style="position: absolute; top: 5px; left: 7px; width: 10px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.7); filter: blur(1.5px);"></div>
+              <div style="position: absolute; top: 12px; left: 0; right: 0; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                <div style="width: 5.5px; height: 7px; border-radius: 50%; background: #fff; position: relative;"><div style="position: absolute; top: 1.5px; left: 1.2px; width: 3px; height: 4px; border-radius: 50%; background: #17264a;"></div><div style="position: absolute; top: 2px; left: 2px; width: 1.3px; height: 1.3px; border-radius: 50%; background: #fff;"></div></div>
+                <div style="width: 5.5px; height: 7px; border-radius: 50%; background: #fff; position: relative;"><div style="position: absolute; top: 1.5px; left: 1.2px; width: 3px; height: 4px; border-radius: 50%; background: #17264a;"></div><div style="position: absolute; top: 2px; left: 2px; width: 1.3px; height: 1.3px; border-radius: 50%; background: #fff;"></div></div>
+              </div>
+              <div style="position: absolute; top: 21px; left: 50%; transform: translateX(-50%); width: 7px; height: 3.5px; border: 1.5px solid #17264a; border-top: none; border-radius: 0 0 7px 7px;"></div>
+              <div style="position: absolute; top: 19px; left: 4.5px; width: 4px; height: 2.5px; border-radius: 50%; background: rgba(255,120,140,0.55); filter: blur(0.6px);"></div>
+              <div style="position: absolute; top: 19px; right: 4.5px; width: 4px; height: 2.5px; border-radius: 50%; background: rgba(255,120,140,0.55); filter: blur(0.6px);"></div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ msg.isDoc }}" hint-placeholder-val="{{ false }}">
+            <div style="max-width: 88%; background: #fff; border-radius: 4px 16px 16px 16px; box-shadow: 0 6px 20px rgba(37,99,235,0.12); overflow: hidden;">
+              <!-- doc header -->
+              <div style="display: flex; align-items: center; gap: 9px; padding: 12px 14px; background: linear-gradient(135deg, #eaf2ff, #f5f9ff); border-bottom: 1px solid rgba(37,99,235,0.08);">
+                <div style="width: 32px; height: 32px; border-radius: 9px; background: linear-gradient(150deg, #4c93ff, #2563eb); display: flex; align-items: center; justify-content: center; flex: 0 0 auto;">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4M15 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path></svg>
+                </div>
+                <div style="flex: 1; min-width: 0;">
+                  <div style="font-size: 14px; font-weight: 700; color: #14203a;">房屋租赁合同</div>
+                  <div style="font-size: 12px; color: #16a34a; font-weight: 600; margin-top: 1px;">已生成 · 共 {{ msg.docArticles }} 条</div>
+                </div>
+              </div>
+              <!-- doc body -->
+              <div class="noscroll" style="max-height: 260px; overflow-y: auto; padding: 14px; font-size: 13px; line-height: 1.85; color: #34405c; white-space: pre-wrap; font-family: 'PingFang SC','Noto Sans SC',serif;">{{ msg.docText }}</div>
+              <!-- export bar -->
+              <div style="display: flex; gap: 9px; padding: 12px 14px; border-top: 1px solid rgba(37,99,235,0.08); background: #fbfdff;">
+                <button onClick="{{ openExportSheet }}" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px; padding: 11px 0; border: none; border-radius: 11px; background: linear-gradient(135deg, #3b82f6, #2563eb); cursor: pointer; font-family: inherit; font-size: 14px; font-weight: 700; color: #fff; box-shadow: 0 5px 14px rgba(37,99,235,0.3);" style-active="transform:scale(0.98);">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 11l4 4 4-4"></path><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"></path></svg>
+                  导出合同
+                </button>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ msg.isText }}" hint-placeholder-val="{{ true }}">
+            <div style="{{ msg.bubbleStyle }}">{{ msg.text }}</div>
+          </sc-if>
+        </div>
+      </sc-for>
+      <sc-if value="{{ thinking }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; gap: 8px; align-items: flex-start;">
+          <div style="width: 32px; height: 32px; border-radius: 50%; flex: 0 0 auto; position: relative; background: radial-gradient(circle at 33% 24%, #ffffff, #d3e7ff 20%, #8fbcff 48%, #4a86ee 76%, #2f63d4 100%); box-shadow: 0 3px 8px rgba(43,98,212,0.35), inset -2px -3px 5px rgba(20,60,150,0.28), inset 2px 3px 5px rgba(255,255,255,0.8);">
+            <div style="position: absolute; top: 5px; left: 7px; width: 10px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.7); filter: blur(1.5px);"></div>
+            <div style="position: absolute; top: 12px; left: 0; right: 0; display: flex; align-items: center; justify-content: center; gap: 5px;">
+              <div style="width: 5.5px; height: 7px; border-radius: 50%; background: #fff; position: relative;"><div style="position: absolute; top: 1.5px; left: 1.2px; width: 3px; height: 4px; border-radius: 50%; background: #17264a;"></div><div style="position: absolute; top: 2px; left: 2px; width: 1.3px; height: 1.3px; border-radius: 50%; background: #fff;"></div></div>
+              <div style="width: 5.5px; height: 7px; border-radius: 50%; background: #fff; position: relative;"><div style="position: absolute; top: 1.5px; left: 1.2px; width: 3px; height: 4px; border-radius: 50%; background: #17264a;"></div><div style="position: absolute; top: 2px; left: 2px; width: 1.3px; height: 1.3px; border-radius: 50%; background: #fff;"></div></div>
+            </div>
+            <div style="position: absolute; top: 21px; left: 50%; transform: translateX(-50%); width: 7px; height: 3.5px; border: 1.5px solid #17264a; border-top: none; border-radius: 0 0 7px 7px;"></div>
+            <div style="position: absolute; top: 19px; left: 4.5px; width: 4px; height: 2.5px; border-radius: 50%; background: rgba(255,120,140,0.55); filter: blur(0.6px);"></div>
+            <div style="position: absolute; top: 19px; right: 4.5px; width: 4px; height: 2.5px; border-radius: 50%; background: rgba(255,120,140,0.55); filter: blur(0.6px);"></div>
+          </div>
+          <div style="background: #fff; border-radius: 4px 16px 16px 16px; padding: 14px 16px; display: flex; gap: 5px; box-shadow: 0 4px 14px rgba(37,99,235,0.08);">
+            <div style="width: 7px; height: 7px; border-radius: 50%; background: #93a3bd; animation: qhTyping 1.2s ease-in-out infinite;"></div>
+            <div style="width: 7px; height: 7px; border-radius: 50%; background: #93a3bd; animation: qhTyping 1.2s ease-in-out 0.2s infinite;"></div>
+            <div style="width: 7px; height: 7px; border-radius: 50%; background: #93a3bd; animation: qhTyping 1.2s ease-in-out 0.4s infinite;"></div>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+
+    <!-- chat input -->
+    <div style="flex: 0 0 auto; padding: 10px 14px 30px; background: rgba(255,255,255,0.72); backdrop-filter: blur(18px); border-top: 1px solid rgba(37,99,235,0.08);">
+      <div style="display: flex; align-items: center; gap: 9px; background: #fff; border-radius: 16px; padding: 7px 8px 7px 12px; box-shadow: 0 4px 14px rgba(37,99,235,0.1);">
+        <button onClick="{{ pickChatFile }}" style="width: 34px; height: 34px; border-radius: 10px; border: none; background: rgba(37,99,235,0.08); display: flex; align-items: center; justify-content: center; cursor: pointer; flex: 0 0 auto; color: #2563eb;" style-active="transform:scale(0.94);">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+        </button>
+        <input ref="{{ chatFileRef }}" type="file" accept=".pdf,.doc,.docx,image/*" onChange="{{ onChatFilePicked }}" style="display: none;">
+        <input value="{{ chatText }}" onChange="{{ onChatInput }}" onKeyDown="{{ onChatKeyDown }}" placeholder="继续和小契聊聊…" style="flex: 1; border: none; outline: none; font-family: inherit; font-size: 15px; color: #14203a; background: transparent; min-width: 0;">
+        <button onClick="{{ sendChat }}" style="{{ chatSendStyle }}">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V6M6 12l6-6 6 6"></path></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ REVIEW · DETAIL ============ -->
+  <div style="{{ uploadToastStyle }}">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto;"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5v5.5"></path><path d="M12 16.5h.01"></path></svg>
+    <span>最多只能上传 10 个文件</span>
+  </div>
+  <div style="{{ reviewDetailStyle }}">
+    <!-- header -->
+    <div style="flex: 0 0 auto; padding: 52px 16px 0; background: rgba(255,255,255,0.82); backdrop-filter: blur(18px);">
+      <div style="display: flex; align-items: center; gap: 10px; padding-bottom: 12px;">
+        <button onClick="{{ backUpload }}" style="width: 36px; height: 36px; border-radius: 11px; border: none; background: rgba(37,99,235,0.06); display: flex; align-items: center; justify-content: center; cursor: pointer;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1f2b45" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"></path></svg>
+        </button>
+        <div style="flex: 1; min-width: 0;">
+          <div style="font-size: 16px; font-weight: 800; color: #16233d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ activeDocTitle }}</div>
+        </div>
+      </div>
+      <div style="padding-bottom: 12px;">
+        <span style="font-size: 15px; font-weight: 800; color: #14203a;">合同风险</span>
+      </div>
+    </div>
+
+    <!-- 合同风险 -->
+      <div class="noscroll" style="flex: 1; overflow-y: auto; padding: 18px 16px 30px; background: linear-gradient(180deg, #eef4ff, #f7fbff);">
+        <sc-if value="{{ noRisks }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top: 40px; display: flex; flex-direction: column; align-items: center; text-align: center;">
+            <div style="width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(150deg,#dcfce7,#f0fdf4); display: flex; align-items: center; justify-content: center; box-shadow: inset 0 2px 3px rgba(255,255,255,0.9), 0 8px 20px rgba(22,163,74,0.15);">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>
+            </div>
+            <div style="font-size: 17px; font-weight: 800; color: #14203a; margin-top: 16px;">未发现明显风险</div>
+            <div style="font-size: 14px; color: #64748b; margin-top: 8px; line-height: 1.6; max-width: 260px;">小契已逐条比对现行法规，未发现不利或缺失条款，该合同可放心签署。</div>
+          </div>
+        </sc-if>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <sc-for list="{{ risks }}" as="rk" hint-placeholder-count="2">
+            <div style="{{ rk.cardStyle }}">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                <span style="{{ rk.tagStyle }}">{{ rk.riskLabel }}</span>
+                <span style="font-size: 14px; font-weight: 700; color: #1f2b45;">{{ rk.clauseRef }}</span>
+              </div>
+              <div style="font-size: 14px; line-height: 1.72; color: #3a4763; background: #f6f8fc; border-radius: 11px; padding: 11px 13px;">{{ rk.body }}</div>
+              <div style="display: flex; align-items: flex-start; gap: 7px; margin-top: 12px; padding-top: 11px; border-top: 1px dashed rgba(234,88,12,0.22);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto;margin-top:2px;"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5v5.5"></path><path d="M12 16.5h.01"></path></svg>
+                <div style="flex: 1;">
+                  <div style="font-size: 12.5px; font-weight: 700; color: #ea580c; margin-bottom: 2px;">风险描述</div>
+                  <div style="font-size: 13.5px; line-height: 1.6; color: #7c3a12;">{{ rk.riskText }}</div>
+                </div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+  </div>
+
+  <!-- ============ REVIEW · LOADING ============ -->
+  <div style="{{ reviewLoadingStyle }}">
+    <div style="display: flex; flex-direction: column; align-items: center;">
+      <div style="position: relative; width: 96px; height: 96px; display: flex; align-items: center; justify-content: center;">
+        <div style="position: absolute; inset: 0; border-radius: 50%; border: 3px solid rgba(37,99,235,0.12);"></div>
+        <div style="position: absolute; inset: 0; border-radius: 50%; border: 3px solid transparent; border-top-color: #2563eb; border-right-color: #2563eb; animation: qhSpin 0.9s linear infinite;"></div>
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.4-3 8.3-7 9.5C8 19.3 5 15.4 5 11V6z"></path><path d="M9.5 11.5l1.6 1.6 3-3.2"></path></svg>
+      </div>
+      <div style="font-size: 17px; font-weight: 800; color: #16233d; margin-top: 22px;">小契正在审查合同…</div>
+      <div style="font-size: 14px; color: #64748b; margin-top: 8px;">{{ loadingStep }}</div>
+    </div>
+  </div>
+
+  <!-- ============ UPLOAD BOTTOM SHEET ============ -->
+  <div style="{{ sheetBackdropStyle }}" onClick="{{ closeSheet }}"></div>
+  <div style="{{ sheetStyle }}">
+    <div style="width: 40px; height: 5px; border-radius: 3px; background: #d7dee9; margin: 10px auto 6px;"></div>
+    <div style="text-align: center; font-size: 15px; font-weight: 700; color: #14203a; padding: 6px 0 4px;">选择上传方式</div>
+    <div style="text-align: center; font-size: 13px; color: #94a3b8; padding-bottom: 12px;">支持 PDF / Word / 图片，资料全程加密</div>
+    <div style="padding: 0 16px;">
+      <sc-for list="{{ sources }}" as="src" hint-placeholder-count="4">
+        <button onClick="{{ src.pick }}" style="width: 100%; display: flex; align-items: center; gap: 14px; padding: 14px 14px; border: none; border-radius: 15px; background: #f6f8fc; cursor: pointer; font-family: inherit; margin-bottom: 10px;" style-active="background:#eaf1fb;transform:scale(0.99);">
+          <div style="width: 42px; height: 42px; border-radius: 12px; background: {{ src.tint }}; display: flex; align-items: center; justify-content: center; flex: 0 0 auto;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="{{ src.stroke }}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="{{ src.icon }}"></path></svg>
+          </div>
+          <div style="flex: 1; text-align: left;">
+            <div style="font-size: 15px; font-weight: 700; color: #14203a;">{{ src.title }}</div>
+            <div style="font-size: 12.5px; color: #94a3b8; margin-top: 2px;">{{ src.desc }}</div>
+          </div>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c3ccdb" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto;"><path d="M9 6l6 6-6 6"></path></svg>
+        </button>
+      </sc-for>
+    </div>
+    <button onClick="{{ closeSheet }}" style="width: calc(100% - 32px); margin: 4px 16px 32px; padding: 14px 0; border: none; border-radius: 15px; background: #eef1f6; cursor: pointer; font-family: inherit; font-size: 15px; font-weight: 700; color: #4a5568;" style-active="transform:scale(0.99);">取消</button>
+  </div>
+
+  <!-- ============ EXPORT BOTTOM SHEET ============ -->
+  <div style="{{ exportBackdropStyle }}" onClick="{{ closeExportSheet }}"></div>
+  <div style="{{ exportSheetStyle }}">
+    <div style="width: 40px; height: 5px; border-radius: 3px; background: #d7dee9; margin: 10px auto 6px;"></div>
+    <div style="text-align: center; font-size: 15px; font-weight: 700; color: #14203a; padding: 6px 0 4px;">保存合同</div>
+    <div style="text-align: center; font-size: 13px; color: #94a3b8; padding-bottom: 12px;">房屋租赁合同 · Word 文档</div>
+    <sc-if value="{{ savedToast }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; align-items: center; justify-content: center; gap: 7px; margin: 0 16px 12px; padding: 11px 0; border-radius: 12px; background: #eafaf0;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"></path><circle cx="12" cy="12" r="9"></circle></svg>
+        <span style="font-size: 14px; font-weight: 700; color: #16a34a;">已保存到本地</span>
+      </div>
+    </sc-if>
+    <div style="padding: 0 16px;">
+      <sc-for list="{{ exportOptions }}" as="op" hint-placeholder-count="3">
+        <button onClick="{{ op.pick }}" style="width: 100%; display: flex; align-items: center; gap: 14px; padding: 14px 14px; border: none; border-radius: 15px; background: #f6f8fc; cursor: pointer; font-family: inherit; margin-bottom: 10px;" style-active="background:#eaf1fb;transform:scale(0.99);">
+          <div style="width: 42px; height: 42px; border-radius: 12px; background: {{ op.tint }}; display: flex; align-items: center; justify-content: center; flex: 0 0 auto;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="{{ op.stroke }}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="{{ op.icon }}"></path></svg>
+          </div>
+          <div style="flex: 1; text-align: left;">
+            <div style="font-size: 15px; font-weight: 700; color: #14203a;">{{ op.title }}</div>
+            <div style="font-size: 12.5px; color: #94a3b8; margin-top: 2px;">{{ op.desc }}</div>
+          </div>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c3ccdb" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto;"><path d="M9 6l6 6-6 6"></path></svg>
+        </button>
+      </sc-for>
+    </div>
+    <button onClick="{{ closeExportSheet }}" style="width: calc(100% - 32px); margin: 4px 16px 32px; padding: 14px 0; border: none; border-radius: 15px; background: #eef1f6; cursor: pointer; font-family: inherit; font-size: 15px; font-weight: 700; color: #4a5568;" style-active="transform:scale(0.99);">取消</button>
+  </div>
+
+  <!-- ============ VOICE INPUT SHEET ============ -->
+  <div style="{{ voiceBackdropStyle }}" onClick="{{ cancelVoice }}"></div>
+  <div style="{{ voiceSheetStyle }}">
+    <div style="width: 40px; height: 5px; border-radius: 3px; background: #d7dee9; margin: 12px auto 2px;"></div>
+    <div style="padding: 16px 22px 30px; display: flex; flex-direction: column; align-items: center;">
+      <div style="font-size: 14px; font-weight: 600; color: {{ voiceStatusColor }};">{{ voiceStatus }}</div>
+
+      <!-- recognized text (editable) -->
+      <div style="min-height: 70px; width: 100%; margin: 16px 0; padding: 12px 14px; border-radius: 14px; background: #f4f7fc;">
+        <textarea value="{{ voiceText }}" onChange="{{ onVoiceEdit }}" placeholder="识别到的文字会显示在这里，也可手动修改…" rows="2" style="width: 100%; border: none; outline: none; resize: none; background: transparent; font-family: inherit; font-size: 16px; line-height: 1.6; color: #14203a; text-align: center;"></textarea>
+      </div>
+
+      <!-- waveform -->
+      <div style="height: 40px; display: flex; align-items: center; justify-content: center; gap: 4px; margin-bottom: 20px;">
+        <sc-for list="{{ voiceBars }}" as="bar" hint-placeholder-count="9">
+          <div style="{{ bar.style }}"></div>
+        </sc-for>
+      </div>
+
+      <!-- controls -->
+      <div style="display: flex; align-items: center; gap: 40px;">
+        <button onClick="{{ cancelVoice }}" style="display: flex; flex-direction: column; align-items: center; gap: 6px; border: none; background: transparent; cursor: pointer; font-family: inherit;">
+          <div style="width: 52px; height: 52px; border-radius: 50%; background: #f0f2f6; display: flex; align-items: center; justify-content: center;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7a8496" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+          </div>
+          <span style="font-size: 12.5px; color: #94a3b8;">取消</span>
+        </button>
+        <button onClick="{{ confirmVoice }}" style="display: flex; flex-direction: column; align-items: center; gap: 6px; border: none; background: transparent; cursor: pointer; font-family: inherit;">
+          <div style="{{ voiceMicStyle }}">
+            <sc-if value="{{ voiceListening }}" hint-placeholder-val="{{ true }}">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0M12 18v3"></path></svg>
+            </sc-if>
+            <sc-if value="{{ voiceDone }}" hint-placeholder-val="{{ false }}">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg>
+            </sc-if>
+          </div>
+          <span style="font-size: 12.5px; color: #2563eb; font-weight: 600;">{{ voiceActionLabel }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</x-import>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 460, &quot;height&quot;: 940}}">
+class Component extends DCLogic {
+  state = { splash: true, splashLeaving: false, text: "", chatText: "", focused: false, dragging: false, phIdx: 0, chatOpen: false, chatMode: "draft", messages: [], thinking: false, review: null, uploadToast: false, attachedFiles: [], activeDoc: "rental", reviewLoading: false, reviewTab: "text", dropActive: false, loadingStep: "正在解析文件结构…", sheetOpen: false, sheetCtx: "review", exportSheetOpen: false, savedToast: false, voiceOpen: false, voiceCtx: "home", voicePhase: "listening", voiceText: "", voiceErr: "" };
+
+  contractText = [
+    "甲方（出租方）：____________________",
+    "乙方（承租方）：____________________",
+    "",
+    "根据《中华人民共和国民法典》及相关法律法规，甲乙双方在平等、自愿、协商一致的基础上，就房屋租赁事宜达成如下协议：",
+    "",
+    "第一条　租赁房屋",
+    "甲方将其合法拥有的、位于 ____________________ 的房屋（建筑面积约 ____ 平方米）出租给乙方使用。房屋现有装修及附属设施详见附件清单。",
+    "",
+    "第二条　租赁用途",
+    "该房屋租赁用途为 ________（居住/办公）。未经甲方书面同意，乙方不得擅自改变房屋用途或从事违法活动。",
+    "",
+    "第三条　租赁期限",
+    "租赁期限自 ____ 年 __ 月 __ 日起至 ____ 年 __ 月 __ 日止，共计 __ 个月。租期届满，乙方在同等条件下享有优先承租权。",
+    "",
+    "第四条　租金及支付方式",
+    "月租金为人民币 ________ 元（大写：____________）。乙方应于每月 __ 日前支付当月租金，支付方式为 ________。逾期支付的，双方另行约定合理的违约责任。",
+    "",
+    "第五条　押金",
+    "乙方于本合同签订之日向甲方支付押金人民币 ________ 元。租赁期满或合同解除且乙方无违约、无欠费的，甲方应于 7 日内无息全额退还押金。",
+    "",
+    "第六条　水电及其他费用",
+    "租赁期间产生的水、电、燃气、物业、网络等费用由乙方按实际用量承担，甲方应协助乙方办理相关手续。",
+    "",
+    "第七条　房屋维修",
+    "房屋主体结构及因自然损耗产生的维修由甲方负责；因乙方使用不当造成的损坏，由乙方负责修复或赔偿。",
+    "",
+    "第八条　双方权利义务",
+    "甲方应保证房屋权属清晰，并保障乙方在租期内正常使用；乙方应爱护房屋设施，按时支付租金及各项费用，不得擅自转租。",
+    "",
+    "第九条　合同解除",
+    "经双方协商一致可解除本合同。一方需提前解除的，应提前 30 日书面通知对方，并按约定承担相应责任。",
+    "",
+    "第十条　争议解决",
+    "因本合同发生的争议，双方应友好协商解决；协商不成的，可向合同履行地人民法院提起诉讼。",
+    "",
+    "第十一条　其他",
+    "本合同一式两份，甲乙双方各执一份，自双方签字（盖章）之日起生效，具有同等法律效力。未尽事宜，双方可另行签订补充协议。",
+    "",
+    "甲方（签字）：____________　　乙方（签字）：____________",
+    "签订日期：____ 年 __ 月 __ 日",
+  ].join("\n");
+  contractArticles = 11;
+
+  clauseData = [
+    { heading: "第一条　合同标的", body: "甲方将位于北京市朝阳区建国路 88 号的房屋出租给乙方，用于日常办公经营，建筑面积约 120 平方米。", risk: null },
+    { heading: "第二条　租金与支付", body: "月租金为人民币 25,000 元，乙方应于每月 1 日前一次性支付当月租金；逾期支付的，按日千分之五计收滞纳金。", level: "high", riskText: "滞纳金标准为日千分之五（年化约 182%），远超司法实践支持的上限，该条款存在被认定无效的风险。", suggestion: "建议将滞纳金下调至日万分之五以内，或改为按 LPR 的一定倍数计算。" },
+    { heading: "第三条　押金条款", body: "乙方应支付相当于两个月租金的押金；合同解除时，甲方有权视情况决定是否退还押金。", level: "high", riskText: "「甲方有权视情况决定是否退还」赋予甲方单方裁量权，退还条件不明确，对乙方明显不利。", suggestion: "建议明确约定：无违约情形下甲方应在解除后 7 日内无息全额退还押金。" },
+    { heading: "第四条　维修与维护", body: "房屋及附属设施设备的维修、维护责任，均由乙方自行承担。", level: "mid", riskText: "未区分自然损耗与人为损坏，将全部维修责任一概归于乙方，责任划分不合理。", suggestion: "建议约定：自然损耗及主体结构维修由甲方负责，乙方仅承担因自身原因造成的损坏。" },
+    { heading: "第五条　合同解除", body: "甲方可提前 30 日书面通知解除合同；乙方提前解除合同的，已付押金不予退还。", level: "mid", riskText: "解除权与违约后果对双方不对等，乙方单方解除即丧失全部押金，缺乏对等约束。", suggestion: "建议设置对等的提前通知期与违约补偿，避免一方承担过重责任。" },
+    { heading: "第六条　争议解决", body: "因本合同履行发生争议的，双方应协商解决；协商不成的，由甲方所在地人民法院管辖。", level: "low", riskText: "约定由甲方所在地法院管辖，若双方不在同一地区，将增加乙方的诉讼成本。", suggestion: "建议改为「由合同履行地人民法院管辖」，更为中立公平。" },
+    { heading: "第七条　其他约定", body: "本合同一式两份，甲乙双方各执一份，自双方签字盖章之日起生效，具有同等法律效力。", risk: null },
+  ];
+  ph = [
+    "描述你要的合同，或上传文件让我审查…",
+    "例如：帮我拟一份设备租赁合同…",
+    "例如：审查这份劳动合同的风险点…",
+    "例如：解释这条违约金条款是否合理…",
+  ];
+
+  componentDidMount() {
+    this._splashT = setTimeout(() => this._enter(), 3000);
+    this._timer = setInterval(() => {
+      if (!this.state.text) this.setState((s) => ({ phIdx: (s.phIdx + 1) % this.ph.length }));
+    }, 2800);
+  }
+  componentWillUnmount() { clearInterval(this._timer); clearTimeout(this._replyT); clearTimeout(this._splashT); clearTimeout(this._leaveT); clearTimeout(this._rev1); clearTimeout(this._rev2); clearTimeout(this._rev3); clearInterval(this._voiceIv); clearTimeout(this._voiceT1); clearTimeout(this._voiceT2); clearTimeout(this._toastT); }
+
+  _enter() {
+    if (this.state.splashLeaving || !this.state.splash) return;
+    clearTimeout(this._splashT);
+    this.setState({ splashLeaving: true });
+    this._leaveT = setTimeout(() => this.setState({ splash: false }), 550);
+  }
+
+  _reply(t) {
+    const review = /审查|风险|上传|文件|pdf|检查/i.test(t);
+    return review
+      ? "好的，请把需要审查的合同发给我，或粘贴条款内容，我会逐条标注风险点并给出修改建议。"
+      : "好的，我来帮你拟定。请补充：合同双方主体、标的/金额，以及关键条款要求，我会据此生成一份条款完整的草案。";
+  }
+
+  _push(role, text) { this.setState((s) => ({ messages: [...s.messages, { role, text }] })); }
+
+  _tabStyle(active) {
+    return "flex: 1; padding: 11px 0; border: none; cursor: pointer; font-family: inherit; font-size: 15px; font-weight: 700; border-radius: 12px 12px 0 0; transition: all .18s ease;"
+      + (active ? "color:#2563eb;background:#f7fbff;border-bottom:2.5px solid #2563eb;" : "color:#94a3b8;background:transparent;border-bottom:2.5px solid transparent;");
+  }
+
+  _pickSource(key) {
+    const names = { wx: "微信-房屋租赁合同.pdf", local: "房屋租赁合同.pdf", photo: "合同照片.jpg", recent: "供应商采购框架协议.pdf" };
+    const name = names[key] || "房屋租赁合同.pdf";
+    const ctx = this.state.sheetCtx;
+    this.setState({ sheetOpen: false });
+    clearTimeout(this._sheetT);
+    this._sheetT = setTimeout(() => {
+      if (ctx === "home") this.setState({ review: "upload" });
+      this._startReview(name);
+    }, 280);
+  }
+
+  _showUploadToast() {
+    this.setState({ uploadToast: true });
+    clearTimeout(this._toastT);
+    this._toastT = setTimeout(() => this.setState({ uploadToast: false }), 3000);
+  }
+
+  reviewDocs = {
+    rental: {
+      title: "房屋租赁合同.pdf",
+      risks: [
+        { clauseRef: "第二条 租金与支付", body: "月租金为人民币 25,000 元，乙方应于每月 1 日前一次性支付当月租金；逾期支付的，按日千分之五计收滞纳金。", riskText: "滞纳金标准为日千分之五（年化约 182%），远超司法实践支持的上限，该条款存在被认定无效的风险。" },
+        { clauseRef: "第三条 押金条款", body: "乙方应支付相当于两个月租金的押金；合同解除时，甲方有权视情况决定是否退还押金。", riskText: "押金是否退还由甲方单方决定，缺乏客观标准，乙方权益难以保障，建议明确退还条件与期限。" },
+      ],
+    },
+    supplier: {
+      title: "供应商采购框架协议.pdf",
+      risks: [
+        { clauseRef: "第五条 付款与结算", body: "买方应在收到全部货物并验收合格后 90 日内支付合同款项，逾期付款不计利息。", riskText: "账期长达 90 日且逾期不计利息，严重占用供应商资金、加大回款风险，建议缩短账期并约定逾期利息。" },
+        { clauseRef: "第八条 质量异议", body: "买方应在收货后 3 日内提出质量异议，逾期视为验收合格。", riskText: "异议期仅 3 日且未区分隐蔽瑕疵，难以发现潜在质量问题，对买方明显不利，建议延长期限并单列隐蔽瑕疵条款。" },
+        { clauseRef: "第十一条 违约责任", body: "任何一方违约，应按合同总额的 30% 向对方支付违约金。", riskText: "违约金高达合同总额 30%，明显高于实际损失，超过法定上限部分可能被法院调减或认定无效。" },
+      ],
+    },
+    labor: {
+      title: "劳动合同（张某）.docx",
+      risks: [],
+    },
+  };
+
+  _startReview(name) {
+    this.setState({ reviewLoading: true, loadingStep: "正在解析文件结构…" });
+    clearTimeout(this._rev1); clearTimeout(this._rev2); clearTimeout(this._rev3);
+    this._rev1 = setTimeout(() => this.setState({ loadingStep: "识别合同条款与主体…" }), 1200);
+    this._rev2 = setTimeout(() => this.setState({ loadingStep: "比对法规、标注风险点…" }), 2800);
+    this._rev3 = setTimeout(() => this.setState({ reviewLoading: false, review: "detail", reviewTab: "text", chatOpen: false }), 4600);
+  }
+
+  _userThenReply(t) {
+    this._push("user", t);
+    this.setState({ thinking: true });
+    clearTimeout(this._replyT);
+    this._replyT = setTimeout(() => {
+      this.setState((s) => ({ messages: [...s.messages, { role: "ai", text: this._reply(t) }], thinking: false }));
+    }, 950);
+  }
+
+  _userThenDraft(t) {
+    this._push("user", t);
+    this.setState({ thinking: true });
+    clearTimeout(this._replyT);
+    this._replyT = setTimeout(() => {
+      this.setState((s) => ({ messages: [...s.messages,
+        { role: "ai", text: "好的，已根据你的需求为你拟定一份《房屋租赁合同》，请查看全文。确认无误后，点击「导出合同」即可保存到本地：" },
+        { role: "ai", type: "doc" },
+      ], thinking: false }));
+    }, 1100);
+  }
+
+  _contractHTML() {
+    const body = this.contractText.split("\n").map((l) => {
+      const t = l.trim();
+      if (!t) return '<div style="height:8px"></div>';
+      if (/^第.+条/.test(t)) return '<p style="font-weight:700;margin:14px 0 4px;font-size:15px;">' + t + "</p>";
+      if (/^房屋租赁合同$/.test(t)) return "";
+      return '<p style="margin:4px 0;line-height:1.9;font-size:14px;">' + t + "</p>";
+    }).join("");
+    return '<!doctype html><html><head><meta charset="utf-8"><title>房屋租赁合同</title></head>'
+      + '<body style="font-family:\'PingFang SC\',\'Microsoft YaHei\',serif;color:#1a1f2e;max-width:720px;margin:40px auto;padding:0 32px;">'
+      + '<h1 style="text-align:center;font-size:22px;margin-bottom:24px;">房屋租赁合同</h1>' + body + "</body></html>";
+  }
+
+  _openVoice(ctx) {
+    this.setState({ voiceOpen: true, voiceCtx: ctx, voicePhase: "listening", voiceText: "", voiceErr: "" });
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) {
+      this.setState({ voicePhase: "manual", voiceErr: "当前浏览器不支持语音识别，可在下方手动输入" });
+      return;
+    }
+    try {
+      const r = new SR();
+      this._recog = r;
+      r.lang = "zh-CN";
+      r.continuous = true;
+      r.interimResults = true;
+      r.onresult = (e) => {
+        let txt = "";
+        for (let i = 0; i < e.results.length; i++) txt += e.results[i][0].transcript;
+        this.setState({ voiceText: txt });
+      };
+      r.onerror = (e) => {
+        const msg = e.error === "not-allowed" || e.error === "service-not-allowed"
+          ? "麦克风未授权，请允许后重试" : (e.error === "no-speech" ? "没有检测到语音，请重试" : "语音识别出错，请手动输入");
+        this.setState({ voicePhase: "manual", voiceErr: msg });
+      };
+      r.onend = () => { if (this.state.voiceOpen && this.state.voicePhase === "listening") this.setState({ voicePhase: "done" }); };
+      r.start();
+    } catch (err) {
+      this.setState({ voicePhase: "manual", voiceErr: "无法启动语音识别，可手动输入" });
+    }
+  }
+
+  _stopRecog() { try { if (this._recog) { this._recog.onend = null; this._recog.stop(); } } catch (e) {} this._recog = null; }
+
+  _onVoiceEdit(v) { this.setState({ voiceText: v }); }
+
+  _confirmVoice() {
+    // if still listening, stop first and let user confirm the captured text
+    if (this.state.voicePhase === "listening") { this._stopRecog(); this.setState({ voicePhase: "done" }); return; }
+    const t = this.state.voiceText.trim();
+    const ctx = this.state.voiceCtx;
+    this._stopRecog();
+    if (!t) { this._closeVoice(); return; }
+    if (ctx === "home") {
+      this.setState((s) => ({ text: (s.text ? s.text + " " : "") + t, voiceOpen: false }));
+    } else {
+      this.setState((s) => ({ chatText: (s.chatText ? s.chatText + " " : "") + t, voiceOpen: false }));
+    }
+  }
+
+  _closeVoice() {
+    this._stopRecog();
+    this.setState({ voiceOpen: false });
+  }
+
+  _exportPick(key) {
+    if (key === "local") {
+      this._exportWord();
+      this.setState({ savedToast: true });
+      clearTimeout(this._saveT);
+      this._saveT = setTimeout(() => this.setState({ exportSheetOpen: false, savedToast: false }), 1400);
+    } else if (key === "copy") {
+      try { navigator.clipboard && navigator.clipboard.writeText(this.contractText); } catch (e) {}
+      this.setState({ savedToast: true });
+      clearTimeout(this._saveT);
+      this._saveT = setTimeout(() => this.setState({ exportSheetOpen: false, savedToast: false }), 1400);
+    } else {
+      this.setState({ savedToast: true });
+      clearTimeout(this._saveT);
+      this._saveT = setTimeout(() => this.setState({ exportSheetOpen: false, savedToast: false }), 1400);
+    }
+  }
+
+  _exportWord() {
+    const html = this._contractHTML();
+    const blob = new Blob(["\ufeff", html], { type: "application/msword" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "房屋租赁合同.doc";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  _exportPdf() {
+    const html = this._contractHTML();
+    const f = document.createElement("iframe");
+    f.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0;";
+    document.body.appendChild(f);
+    const d = f.contentWindow.document;
+    d.open(); d.write(html); d.close();
+    setTimeout(() => { try { f.contentWindow.focus(); f.contentWindow.print(); } catch (e) {} setTimeout(() => f.remove(), 800); }, 350);
+  }
+
+  renderVals() {
+    const hasText = this.state.text.trim().length > 0;
+    const hasChat = this.state.chatText.trim().length > 0;
+    const open = this.state.chatOpen;
+
+    return {
+      splashVisible: this.state.splash,
+      enterApp: () => this._enter(),
+      splashStyle: "position: absolute; inset: 0; z-index: 50; display: flex; flex-direction: column; cursor: pointer; background: linear-gradient(180deg, #d8e8ff 0%, #e9f1ff 45%, #f7fbff 100%);"
+        + "transition: opacity .5s ease, transform .5s ease;"
+        + (this.state.splashLeaving ? "opacity: 0; transform: scale(1.04); pointer-events: none;" : "opacity: 1;"),
+      text: this.state.text,
+      chatText: this.state.chatText,
+      hasText,
+      dragging: this.state.dragging,
+      thinking: this.state.thinking,
+      showBar: this.state.focused && !hasText,
+      placeholder: this.ph[this.state.phIdx],
+      helperText: hasText ? "小契已就绪，点击发送" : (this.state.attachedFiles.length ? "输入需求后即可发送" : "可上传文件，最多 10 个"),
+
+      onInput: (e) => this.setState({ text: e.target.value }),
+      onChatInput: (e) => this.setState({ chatText: e.target.value }),
+      onFocus: () => this.setState({ focused: true }),
+      onBlur: () => this.setState({ focused: false }),
+      clear: () => this.setState({ text: "" }),
+      onKeyDown: (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); this._sendHome(); } },
+      onChatKeyDown: (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); this._sendChat(); } },
+
+      sendHome: () => this._sendHome(),
+      sendChat: () => this._sendChat(),
+      closeChat: () => this.setState({ chatOpen: false }),
+      newChat: () => this.setState({ messages: [], chatText: "" }),
+
+      draftFlow: () => this.setState({ chatOpen: true, chatMode: "draft", thinking: false, messages: [{ role: "ai", text: "你好，我们来拟定合同 📄 请描述合同类型、双方主体和主要条款，我来生成完整草案。" }] }),
+      reviewFlow: () => this.setState({ chatOpen: true, chatMode: "review", thinking: false, chatText: "", messages: [{ role: "ai", text: "你好，我是小契 🛡️ 请点击左下角的「+」上传需要审查的合同（支持 PDF / Word / 图片），我会逐条为你标注风险点。" }] }),
+      backHome: () => this.setState({ review: null }),
+      backUpload: () => this.setState({ review: null }),
+      startReview: () => this._startReview("房屋租赁合同.pdf"),
+      reviewFileRef: (el) => { this._reviewFileEl = el; },
+      pickReviewFile: () => { if (this._reviewFileEl) this._reviewFileEl.click(); },
+      onReviewFilePicked: (e) => { const f = e.target.files && e.target.files[0]; if (f) this._startReview(f.name); try { e.target.value = ""; } catch (x) {} },
+      openSheetHome: () => this.setState({ sheetOpen: true, sheetCtx: "home" }),
+      homeFileRef: (el) => { this._homeFileEl = el; },
+      chatFileRef: (el) => { this._chatFileEl = el; },
+      pickChatFile: () => { if (this._chatFileEl) this._chatFileEl.click(); },
+      onChatFilePicked: (e) => { const f = e.target.files && e.target.files[0]; try { e.target.value = ""; } catch (x) {} if (f) { this.setState((s) => ({ messages: [...s.messages, { role: "user", text: "📎 已上传：" + f.name }] })); this._startReview(f.name); } },
+      attachments: this.state.attachedFiles.map((name, i) => ({ name, remove: () => this.setState((s) => ({ attachedFiles: s.attachedFiles.filter((_, j) => j !== i) })) })),
+      hasAttachments: this.state.attachedFiles.length > 0,
+      pickHomeFile: () => { if (this._homeFileEl) this._homeFileEl.click(); },
+      onHomeFilePicked: (e) => {
+        const files = e.target.files;
+        if (files && files.length > 10) { this._showUploadToast(); }
+        else if (files && files.length) { const names = [].slice.call(files).map((f) => f.name); this.setState((s) => ({ attachedFiles: s.attachedFiles.concat(names).slice(0, 10) })); }
+        try { e.target.value = ""; } catch (x) {}
+      },
+      uploadToastStyle: "position: absolute; left: 50%; top: 50%; z-index: 90; transform: translate(-50%,-50%) scale(" + (this.state.uploadToast ? "1" : "0.94") + "); display: flex; align-items: center; gap: 8px; padding: 12px 18px; border-radius: 14px; background: rgba(20,32,58,0.92); color: #fff; font-size: 14px; font-weight: 600; white-space: nowrap; box-shadow: 0 12px 34px rgba(20,45,120,0.4);" + (this.state.uploadToast ? "opacity: 1;" : "opacity: 0; pointer-events: none;") + " transition: opacity .25s ease, transform .25s ease;",
+      openSheetReview: () => this.setState({ sheetOpen: true, sheetCtx: "review" }),
+      closeSheet: () => this.setState({ sheetOpen: false }),
+      sources: [
+        { key: "wx", title: "微信聊天记录", desc: "从微信接收的合同文件", tint: "linear-gradient(135deg,#d8f5df,#eafaef)", stroke: "#1aad19", icon: "M8.5 3C4.9 3 2 5.6 2 8.8c0 1.8.9 3.4 2.4 4.5L3.6 16l2.6-1.3c.8.2 1.5.3 2.3.3M15.5 9C12.5 9 10 11.2 10 14s2.5 5 5.5 5c.7 0 1.4-.1 2-.4l2.2 1.1-.7-2c1.2-.9 2-2.3 2-3.7 0-2.8-2.5-5-5.5-5z" },
+        { key: "local", title: "本地文件", desc: "手机存储中的文档", tint: "linear-gradient(135deg,#dbeafe,#eff6ff)", stroke: "#2563eb", icon: "M4 7a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" },
+        { key: "photo", title: "拍照 / 相册", desc: "拍摄或从相册选取合同照片", tint: "linear-gradient(135deg,#fef3c7,#fffbeb)", stroke: "#d97706", icon: "M4 8a2 2 0 0 1 2-2h1.5l1-1.5h5L15.5 6H18a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM12 10.5a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" },
+        { key: "recent", title: "最近文档", desc: "近期查看过的合同", tint: "linear-gradient(135deg,#ede9fe,#f5f3ff)", stroke: "#7c3aed", icon: "M12 7v5l3 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z" },
+      ].map((s) => ({ ...s, pick: () => this._pickSource(s.key) })),
+      tabText: () => this.setState({ reviewTab: "text" }),
+      tabRisk: () => this.setState({ reviewTab: "risk" }),
+      isTextTab: this.state.reviewTab === "text",
+      isRiskTab: this.state.reviewTab === "risk",
+      dropActive: this.state.dropActive,
+      onDropOver: (e) => { e.preventDefault(); if (!this.state.dropActive) this.setState({ dropActive: true }); },
+      onDropLeave: (e) => { e.preventDefault(); this.setState({ dropActive: false }); },
+      onDropFile: (e) => { e.preventDefault(); const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; this.setState({ dropActive: false }); this._startReview(f ? f.name : "房屋租赁合同.pdf"); },
+      loadingStep: this.state.loadingStep,
+      recordCount: 3,
+      records: [
+        { title: "房屋租赁合同.pdf", time: "今天 14:32", badge: "2 处风险", open: () => this.setState({ review: "detail", activeDoc: "rental" }), badgeStyle: "font-size:13px;font-weight:600;color:#ea580c;background:rgba(234,88,12,0.1);padding:3px 10px;border-radius:8px;flex:0 0 auto;" },
+        { title: "供应商采购框架协议.pdf", time: "昨天 09:15", badge: "3 处风险", open: () => this.setState({ review: "detail", activeDoc: "supplier" }), badgeStyle: "font-size:13px;font-weight:600;color:#ea580c;background:rgba(234,88,12,0.1);padding:3px 10px;border-radius:8px;flex:0 0 auto;" },
+        { title: "劳动合同（张某）.docx", time: "3 天前", badge: "已通过", open: () => this.setState({ review: "detail", activeDoc: "labor" }), badgeStyle: "font-size:13px;font-weight:600;color:#16a34a;background:rgba(22,163,74,0.1);padding:3px 10px;border-radius:8px;flex:0 0 auto;" },
+      ],
+
+      reviewUploadStyle: "position: absolute; inset: 0; z-index: 30; display: flex; flex-direction: column; background: linear-gradient(180deg, #dfeaff, #f5f9ff); transition: transform .36s cubic-bezier(.4,0,.2,1);"
+        + (this.state.review ? "transform: translateX(0);" : "transform: translateX(100%); pointer-events: none;"),
+      reviewDetailStyle: "position: absolute; inset: 0; z-index: 33; display: flex; flex-direction: column; background: #f7fbff; transition: transform .36s cubic-bezier(.4,0,.2,1); box-shadow: -12px 0 30px rgba(20,45,120,0.08);"
+        + (this.state.review === "detail" ? "transform: translateX(0);" : "transform: translateX(100%); pointer-events: none;"),
+      reviewLoadingStyle: "position: absolute; inset: 0; z-index: 46; display: flex; align-items: center; justify-content: center; background: rgba(240,246,255,0.92); backdrop-filter: blur(6px); transition: opacity .3s ease;"
+        + (this.state.reviewLoading ? "opacity: 1; pointer-events: auto;" : "opacity: 0; pointer-events: none;"),
+      sheetBackdropStyle: "position: absolute; inset: 0; z-index: 55; background: rgba(20,32,58,0.4); transition: opacity .3s ease;"
+        + (this.state.sheetOpen ? "opacity: 1; pointer-events: auto;" : "opacity: 0; pointer-events: none;"),
+      sheetStyle: "position: absolute; left: 0; right: 0; bottom: 0; z-index: 56; background: #fff; border-radius: 24px 24px 0 0; box-shadow: 0 -12px 40px rgba(20,45,120,0.2); transition: transform .34s cubic-bezier(.32,.72,0,1);"
+        + (this.state.sheetOpen ? "transform: translateY(0);" : "transform: translateY(110%);"),
+      exportBackdropStyle: "position: absolute; inset: 0; z-index: 57; background: rgba(20,32,58,0.4); transition: opacity .3s ease;"
+        + (this.state.exportSheetOpen ? "opacity: 1; pointer-events: auto;" : "opacity: 0; pointer-events: none;"),
+      exportSheetStyle: "position: absolute; left: 0; right: 0; bottom: 0; z-index: 58; background: #fff; border-radius: 24px 24px 0 0; box-shadow: 0 -12px 40px rgba(20,45,120,0.2); transition: transform .34s cubic-bezier(.32,.72,0,1);"
+        + (this.state.exportSheetOpen ? "transform: translateY(0);" : "transform: translateY(110%);"),
+      uploadCardStyle: "position: relative; display: flex; flex-direction: column; align-items: center; padding: 30px 20px; border-radius: 24px; background: rgba(255,255,255,0.85); border: 1.5px dashed "
+        + (this.state.dropActive ? "#2563eb" : "#c3d4f5") + "; box-shadow: 0 14px 34px rgba(37,99,235,0.12);",
+
+      tabTextStyle: this._tabStyle(this.state.reviewTab === "text"),
+      tabRiskStyle: this._tabStyle(this.state.reviewTab === "risk"),
+
+      clauses: this.clauseData.map((c) => {
+        const lv = c.level;
+        const col = lv === "high" ? { c: "#e5484d", bg: "#fff1f1", bd: "#ffd9d9" } : lv === "mid" ? { c: "#d97706", bg: "#fff8ec", bd: "#ffe6bf" } : lv === "low" ? { c: "#2563eb", bg: "#eef4ff", bd: "#d5e2ff" } : null;
+        return {
+          heading: c.heading,
+          body: c.body,
+          hasRisk: !!lv,
+          riskLabel: lv === "high" ? "高风险" : lv === "mid" ? "中风险" : "低风险",
+          riskText: c.riskText || "",
+          bodyStyle: "font-size:14.5px;line-height:1.75;color:#3a4763;"
+            + (lv ? "background:" + col.bg + ";border-left:3px solid " + col.c + ";padding:9px 12px;border-radius:0 10px 10px 0;" : "padding:0 2px;"),
+          bubbleWrapStyle: lv ? "position:relative;margin-top:11px;margin-left:10px;background:#fff;border:1px solid " + col.bd + ";border-radius:4px 14px 14px 14px;padding:12px 14px;box-shadow:0 6px 18px rgba(20,45,120,0.08);" : "",
+          pointerStyle: lv ? "position:absolute;top:-7px;left:16px;width:12px;height:12px;background:#fff;border-left:1px solid " + col.bd + ";border-top:1px solid " + col.bd + ";transform:rotate(45deg);" : "",
+          tagStyle: lv ? "font-size:12px;font-weight:700;color:#fff;background:" + col.c + ";padding:3px 9px;border-radius:7px;" : "",
+        };
+      }),
+
+      activeDocTitle: (this.reviewDocs[this.state.activeDoc] || this.reviewDocs.rental).title,
+      noRisks: ((this.reviewDocs[this.state.activeDoc] || this.reviewDocs.rental).risks || []).length === 0,
+      risks: ((this.reviewDocs[this.state.activeDoc] || this.reviewDocs.rental).risks || []).map((c) => {
+        const col = { c: "#ea580c", bg: "#fff5ed", bd: "#ffe0c7" };
+        return {
+          riskLabel: "高风险",
+          clauseRef: c.clauseRef,
+          body: c.body,
+          riskText: c.riskText,
+          cardStyle: "background:#fff;border:1px solid " + col.bd + ";border-left:4px solid " + col.c + ";border-radius:15px;padding:14px;box-shadow:0 6px 18px rgba(20,45,120,0.06);",
+          tagStyle: "font-size:12px;font-weight:700;color:#fff;background:" + col.c + ";padding:3px 9px;border-radius:7px;",
+        };
+      }),
+
+      inputBoxStyle: "position: relative; margin-top: 16px; background: rgba(255,255,255,0.78); backdrop-filter: blur(20px); border-radius: 20px; padding: 15px 15px 12px; box-shadow: 0 12px 32px rgba(37,99,235,0.15), inset 0 1px 1px rgba(255,255,255,0.9);"
+        + "border: 1.5px solid " + (this.state.dragging || this.state.focused ? "#2563eb" : "rgba(255,255,255,0.95)") + ";",
+
+      sendStyle: "width: 40px; height: 40px; border-radius: 13px; border: none; display: flex; align-items: center; justify-content: center; transition: transform .16s ease;"
+        + (hasText
+          ? "cursor: pointer; background: linear-gradient(135deg, #3b82f6, #2563eb); transform: scale(1.06); animation: qhReady 1.6s ease-in-out infinite;"
+          : "cursor: not-allowed; pointer-events: none; background: linear-gradient(135deg, #c3d4f5, #a9c0ee); opacity: 0.85;"),
+
+      chatSendStyle: "width: 36px; height: 36px; border-radius: 12px; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; flex: 0 0 auto; transition: opacity .16s ease;"
+        + "background: linear-gradient(135deg, #3b82f6, #2563eb); box-shadow: 0 4px 12px rgba(37,99,235,0.35); opacity: " + (hasChat ? "1" : "0.55") + ";",
+
+      chatOverlayStyle: "position: absolute; inset: 0; z-index: 40; display: flex; flex-direction: column; background: linear-gradient(180deg, #e6f0ff, #f5faff); transition: transform .36s cubic-bezier(.4,0,.2,1), opacity .3s ease;"
+        + (open ? "transform: translateY(0); opacity: 1; pointer-events: auto;" : "transform: translateY(100%); opacity: 0; pointer-events: none;"),
+
+      msgs: this.state.messages.map((m) => {
+        const ai = m.role === "ai";
+        if (m.type === "doc") {
+          return { isAi: true, isDoc: true, isText: false, docText: this.contractText, docArticles: this.contractArticles, rowStyle: "display:flex;gap:8px;align-items:flex-start;justify-content:flex-start;" };
+        }
+        return {
+          text: m.text,
+          isAi: ai,
+          isDoc: false,
+          isText: true,
+          rowStyle: ai ? "display:flex;gap:8px;align-items:flex-start;justify-content:flex-start;" : "display:flex;justify-content:flex-end;",
+          bubbleStyle: ai
+            ? "max-width:80%;background:#fff;border-radius:4px 16px 16px 16px;padding:11px 14px;font-size:14px;line-height:1.62;color:#1f2b45;box-shadow:0 4px 14px rgba(37,99,235,0.08);"
+            : "max-width:80%;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border-radius:16px 4px 16px 16px;padding:11px 14px;font-size:14px;line-height:1.62;box-shadow:0 6px 16px rgba(37,99,235,0.28);",
+        };
+      }),
+
+      exportWord: () => this._exportWord(),
+      exportPdf: () => this._exportPdf(),
+      openVoiceHome: () => this._openVoice("home"),
+      openVoiceChat: () => this._openVoice("chat"),
+      cancelVoice: () => this._closeVoice(),
+      confirmVoice: () => this._confirmVoice(),
+      onVoiceEdit: (e) => this._onVoiceEdit(e.target.value),
+      voiceText: this.state.voiceText,
+      voiceHasText: this.state.voiceText.length > 0,
+      voiceEmpty: this.state.voiceText.length === 0,
+      voiceManual: this.state.voicePhase === "manual",
+      voiceErr: this.state.voiceErr || "",
+      voiceListening: this.state.voicePhase !== "done",
+      voiceDone: this.state.voicePhase === "done",
+      voiceStatus: this.state.voicePhase === "manual"
+        ? (this.state.voiceErr || "请手动输入")
+        : (this.state.voicePhase === "done"
+          ? (this.state.voiceText ? "识别完成，点击使用" : "未识别到内容")
+          : (this.state.voiceText ? "正在识别…（点击完成结束）" : "请开始说话，小契正在聆听…")),
+      voiceStatusColor: this.state.voicePhase === "done" ? "#16a34a" : (this.state.voicePhase === "manual" ? "#d97706" : "#2563eb"),
+      voiceActionLabel: this.state.voicePhase === "done" ? "使用" : "完成",
+      voiceBackdropStyle: "position: absolute; inset: 0; z-index: 59; background: rgba(20,32,58,0.4); transition: opacity .3s ease;"
+        + (this.state.voiceOpen ? "opacity: 1; pointer-events: auto;" : "opacity: 0; pointer-events: none;"),
+      voiceSheetStyle: "position: absolute; left: 0; right: 0; bottom: 0; z-index: 60; background: #fff; border-radius: 24px 24px 0 0; box-shadow: 0 -12px 40px rgba(20,45,120,0.2); transition: transform .34s cubic-bezier(.32,.72,0,1);"
+        + (this.state.voiceOpen ? "transform: translateY(0);" : "transform: translateY(110%);"),
+      voiceMicStyle: "width: 62px; height: 62px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: linear-gradient(150deg, #4c93ff, #2563eb); box-shadow: 0 8px 20px rgba(37,99,235,0.4);"
+        + (this.state.voicePhase !== "done" ? "animation: qhMicPulse 1.5s ease-out infinite;" : ""),
+      voiceBars: [0,1,2,3,4,5,6,7,8].map((i) => {
+        const active = this.state.voiceOpen && this.state.voicePhase === "listening";
+        const h = [16,26,34,22,38,20,32,26,16][i];
+        return { style: "width: 4px; height: " + h + "px; border-radius: 3px; background: linear-gradient(#7fb0ff, #2563eb); transform-origin: center;"
+          + (active ? "animation: qhWave " + (0.55 + (i % 3) * 0.12) + "s ease-in-out " + (i * 0.07) + "s infinite;" : "transform: scaleY(0.3); opacity: 0.45;") };
+      }),
+      openExportSheet: () => this.setState({ exportSheetOpen: true, savedToast: false }),
+      closeExportSheet: () => this.setState({ exportSheetOpen: false }),
+      savedToast: this.state.savedToast,
+      exportOptions: [
+        { key: "local", title: "保存到本地", desc: "下载 Word 文档到手机", tint: "linear-gradient(135deg,#dbeafe,#eff6ff)", stroke: "#2563eb", icon: "M12 3v12M8 11l4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" },
+      ].map((o) => ({ ...o, pick: () => this._exportPick(o.key) })),
+
+      onDragOver: (e) => { e.preventDefault(); if (!this.state.dragging) this.setState({ dragging: true }); },
+      onDragLeave: (e) => { e.preventDefault(); this.setState({ dragging: false }); },
+      onDrop: (e) => {
+        e.preventDefault();
+        const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        this.setState({ dragging: false });
+        if (f) { this.setState({ chatOpen: true }); this._userThenReply("请帮我审查文件：" + f.name); }
+      },
+    };
+  }
+
+  _sendHome() {
+    const t = this.state.text.trim();
+    if (!t) return;
+    const atts = this.state.attachedFiles;
+    if (atts.length) {
+      const fileLine = "📎 已上传：" + atts.join("、");
+      this.setState({ text: "", attachedFiles: [], chatOpen: true, chatMode: "review", messages: [{ role: "user", text: fileLine + "\n" + t }] });
+      this._startReview(atts[0]);
+      return;
+    }
+    this.setState({ text: "", chatOpen: true, chatMode: "draft" });
+    this._userThenDraft(t);
+  }
+  _sendChat() {
+    const t = this.state.chatText.trim();
+    if (!t) return;
+    this.setState({ chatText: "" });
+    if (this.state.chatMode === "draft") this._userThenDraft(t);
+    else this._userThenReply(t);
+  }
+}
+</script>
+</body>
+</html>
