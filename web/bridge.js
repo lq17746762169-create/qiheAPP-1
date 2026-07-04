@@ -68,6 +68,21 @@
       window.QiheAPI.send('请审查以下文件：' + (name || '合同文件'));
     };
 
+    // 修复返回逻辑：从风险详情退回时应回到聊天页而非首页
+    if (!inst.__qiheBackFixed) {
+      inst.__qiheBackFixed = true;
+      var origBackHome = inst.backHome;
+      inst.backHome = function () {
+        if (this.state.chatOpen && this.state.review === 'detail') {
+          this.setState({ review: null });
+        } else if (origBackHome) {
+          origBackHome.call(this);
+        } else {
+          this.setState({ review: null });
+        }
+      };
+    }
+
     // 修复审查页面颜色：包裹 renderVals，修改 clauses 颜色
     if (inst.renderVals && !inst.__qiheColorFixed) {
       inst.__qiheColorFixed = true;
@@ -169,23 +184,25 @@
           }).catch(function () { inst._push('ai', '模板加载失败'); });
         }
       } else if (d.text) {
-        // 审查报告检测
+        // 审查报告检测：只展示整体风险总结到聊天框，结构化数据藏后台
         if (isReviewText(d.raw || '')) {
           var clauses = parseReviewMarkdown(d.raw || '');
           if (clauses.length > 0) {
             inst.clauseData = clauses;
-            // 同时更新 reviewDocs 以便风险 Tab 渲染
             inst.reviewDocs = inst.reviewDocs || {};
             inst.reviewDocs.review = {
               title: '审查报告',
               risks: clauses.map(function (c) { return { clauseRef: c.heading, body: c.body, riskText: c.riskText, level: c.level }; }),
             };
+            // 提取整体风险总结作为聊天文字
+            var summaryMatch = (d.raw || '').match(/##\s*整体风险总结\s*\n([\s\S]*?)(?=\n---|\n##\s*风险明细|\n###\s*\[|$)/);
+            var summary = summaryMatch ? summaryMatch[1].trim() : (d.text || '');
+            // 不自动跳转详情：留在聊天页
             inst.setState({
-              review: 'detail',
-              reviewTab: 'text',
               reviewLoading: false,
+              chatOpen: true,
+              review: null,
               activeDoc: 'review',
-              chatOpen: false,
             });
           }
         }
