@@ -279,12 +279,13 @@ workflow:
           enabled: false
           variable_selector: []
         memory:
-          query_prompt_template: '用户输入/query
-
-            {{#sys.query#}}
+          query_prompt_template: '{{#sys.query#}}
 
 
-            {{#sys.files#}}'
+            {{#sys.files#}}
+
+
+            {{#1783097464311.text#}}'
           role_prefix:
             assistant: ''
             user: ''
@@ -423,7 +424,10 @@ workflow:
           query_prompt_template: '{{#sys.query#}}
 
 
-            {{#sys.files#}}'
+            {{#sys.files#}}
+
+
+            {{#1783097464311.text#}}'
           role_prefix:
             assistant: ''
             user: ''
@@ -515,9 +519,13 @@ workflow:
           enabled: false
           variable_selector: []
         memory:
-          query_prompt_template: 's{{#sys.query#}}
+          query_prompt_template: '{{#sys.query#}}
 
-            {{#sys.files#}}'
+
+            {{#sys.files#}}
+
+
+            {{#1783097464311.text#}}'
           role_prefix:
             assistant: ''
             user: ''
