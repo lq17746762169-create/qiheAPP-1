@@ -58,7 +58,51 @@
       }
     };
 
+    // 替换 _startReview → 用真实 Dify 替代假数据
+    var origStartReview = inst._startReview;
+    inst._startReview = function (name) {
+      if (!window.QiheAPI) return origStartReview.call(this, name);
+      var self = this;
+      self.setState({ reviewLoading: true, loadingStep: '正在解析文件结构…' });
+      // 发真实请求到 Dify
+      window.QiheAPI.send('请审查以下文件：' + (name || '合同文件'));
+    };
+
     console.log('[qihe-bridge] Instance hooked');
+  }
+
+  // ===== 审查报告 Markdown → clauseData 解析 =====
+  function parseReviewMarkdown(raw) {
+    var result = [];
+    // 先按 ### [...] 切分各风险块
+    var blocks = raw.split(/\n###\s*\[/);
+    for (var i = 1; i < blocks.length; i++) {
+      var block = '[' + blocks[i];
+      var m = block.match(/^\[(高风险|中风险|低风险)\]\s*(.+)/);
+      if (!m) continue;
+      var levelMap = { '高风险': 'high', '中风险': 'mid', '低风险': 'low' };
+      var heading = (m[2] || '').trim();
+      
+      // 提取条款原文
+      var bodyMatch = block.match(/>\s*条款原文[：:]\s*([\s\S]*?)(?=\n\s*风险描述|\n###|$)/);
+      var body = bodyMatch ? bodyMatch[1].trim() : '';
+      
+      // 提取风险描述（到下一个 --- 或 ### 或文件末尾为止）
+      var descMatch = block.match(/风险描述[：:]\s*([\s\S]*?)(?=\n---|\n###\s*\[|\n\*\*律师|$)/);
+      var riskText = descMatch ? descMatch[1].trim() : '';
+      
+      result.push({
+        heading: heading,
+        body: body,
+        level: levelMap[m[1]] || 'high',
+        riskText: riskText,
+      });
+    }
+    return result;
+  }
+
+  function isReviewText(text) {
+    return /整体风险总结|风险明细|\[高风险\]|\[中风险\]|\[低风险\]/.test(text);
   }
 
   // ===== 监听 Dify 流式事件 =====
@@ -96,8 +140,26 @@
           }).catch(function () { inst._push('ai', '模板加载失败'); });
         }
       } else if (d.text) {
-        // 纯文本回复：不清空重来，流式阶段已经逐字更新了最后一条消息
-        // 无需重复 push，只需确保 thinking 已关
+        // 审查报告检测
+        if (isReviewText(d.raw || '')) {
+          var clauses = parseReviewMarkdown(d.raw || '');
+          if (clauses.length > 0) {
+            inst.clauseData = clauses;
+            // 同时更新 reviewDocs 以便风险 Tab 渲染
+            inst.reviewDocs = inst.reviewDocs || {};
+            inst.reviewDocs.review = {
+              title: '审查报告',
+              risks: clauses.map(function (c) { return { clauseRef: c.heading, body: c.body, riskText: c.riskText }; }),
+            };
+            inst.setState({
+              review: 'detail',
+              reviewTab: 'risk',
+              reviewLoading: false,
+              activeDoc: 'review',
+              chatOpen: false,
+            });
+          }
+        }
       }
     } else {
       // 流式中 → 更新最后一条 AI 消息
