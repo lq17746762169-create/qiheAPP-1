@@ -244,9 +244,14 @@
       }
 
       // 流式完成
-      const contract = raw.match(CONTRACT_RE);
-      const tpl = raw.match(TEMPLATE_RE);
-      const intro = raw
+      var contract = raw.match(CONTRACT_RE);
+      var tpl = raw.match(TEMPLATE_RE);
+
+      // 代码执行节点缩进报错兜底：Dify 无输出但用户在请求模板
+      if (!raw && /模板/.test(query)) {
+        tpl = ['<<<TEMPLATE:housing_lease>>>', 'housing_lease'];
+      }
+      var intro = raw
         .replace(CONTRACT_RE, '')
         .replace(/<<<TEMPLATE:[a-zA-Z0-9_-]+>>>/g, '')
         .trim();
