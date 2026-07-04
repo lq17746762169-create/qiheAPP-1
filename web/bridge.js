@@ -94,10 +94,11 @@
       inst.renderVals = function () {
         var v = _origRV.call(this);
         if (v && v.clauses && this.clauseData) {
-          v.clauses = v.clauses.map(function (c, i) {
-            var level = this.clauseData[i] ? this.clauseData[i].level : null;
-            // 兜底：索引不匹配的默认按高风险处理
-            if (!level) { c.riskLabel = '高风险'; return c; }
+          // 创建 heading→level 映射，避免索引错位
+          var levelMap = {};
+          this.clauseData.forEach(function (d) { levelMap[d.heading] = d.level; });
+          v.clauses = v.clauses.map(function (c) {
+            var level = levelMap[c.heading] || (c.riskLabel === '高风险' ? 'high' : c.riskLabel === '低风险' ? 'low' : c.riskLabel === '中风险' ? 'mid' : null);
             if (level === 'high') {
               c.riskLabel = '高风险';
               c.tagStyle = 'font-size:12px;font-weight:700;color:#fff;background:#dc2626;padding:3px 9px;border-radius:7px;';
