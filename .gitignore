@@ -1,0 +1,12 @@
+# 依赖
+node_modules/
+
+# 环境变量与密钥（务必不要提交，本仓库为公开开源仓库）
+.env
+.env.local
+app/server/.env
+app/server/.env.local
+
+# 系统与日志
+.DS_Store
+*.log
