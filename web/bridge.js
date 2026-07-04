@@ -15,6 +15,22 @@
 
   var _hooked = new WeakSet();
 
+  // 注入审查页面颜色修正 CSS
+  (function injectColors() {
+    var s = document.createElement('style');
+    s.id = 'qihe-review-fix';
+    s.textContent =
+      '/* 低风险: 蓝→黄橙 */' +
+      '[style*="2563eb"][style*="background"]{background:#d97706!important;background-color:#d97706!important}' +
+      '/* 高风险: 保持红 */' +
+      '[style*="e5484d"][style*="background"]{background:#dc2626!important;background-color:#dc2626!important}' +
+      '[style*="e5484d"][style*="border"]{border-color:#dc2626!important;border-left-color:#dc2626!important}' +
+      '/* 风险卡片: 橙→红 */' +
+      '[style*="ea580c"][style*="background"]{background:#dc2626!important;background-color:#dc2626!important}' +
+      '[style*="ea580c"][style*="border"]{border-color:#dc2626!important;border-left-color:#dc2626!important}';
+    document.head.appendChild(s);
+  })();
+
   function hookInstance(inst) {
     if (_hooked.has(inst)) return;
     _hooked.add(inst);
@@ -149,11 +165,11 @@
             inst.reviewDocs = inst.reviewDocs || {};
             inst.reviewDocs.review = {
               title: '审查报告',
-              risks: clauses.map(function (c) { return { clauseRef: c.heading, body: c.body, riskText: c.riskText }; }),
+              risks: clauses.map(function (c) { return { clauseRef: c.heading, body: c.body, riskText: c.riskText, level: c.level }; }),
             };
             inst.setState({
               review: 'detail',
-              reviewTab: 'risk',
+              reviewTab: 'text',
               reviewLoading: false,
               activeDoc: 'review',
               chatOpen: false,
