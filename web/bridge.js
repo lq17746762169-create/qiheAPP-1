@@ -15,22 +15,6 @@
 
   var _hooked = new WeakSet();
 
-  // 注入审查页面颜色修正 CSS
-  (function injectColors() {
-    var s = document.createElement('style');
-    s.id = 'qihe-review-fix';
-    s.textContent =
-      '/* 低风险: 蓝→黄橙 */' +
-      '[style*="2563eb"][style*="background"]{background:#d97706!important;background-color:#d97706!important}' +
-      '/* 高风险: 保持红 */' +
-      '[style*="e5484d"][style*="background"]{background:#dc2626!important;background-color:#dc2626!important}' +
-      '[style*="e5484d"][style*="border"]{border-color:#dc2626!important;border-left-color:#dc2626!important}' +
-      '/* 风险卡片: 橙→红 */' +
-      '[style*="ea580c"][style*="background"]{background:#dc2626!important;background-color:#dc2626!important}' +
-      '[style*="ea580c"][style*="border"]{border-color:#dc2626!important;border-left-color:#dc2626!important}';
-    document.head.appendChild(s);
-  })();
-
   function hookInstance(inst) {
     if (_hooked.has(inst)) return;
     _hooked.add(inst);
@@ -83,6 +67,35 @@
       // 发真实请求到 Dify
       window.QiheAPI.send('请审查以下文件：' + (name || '合同文件'));
     };
+
+    // 修复审查页面颜色：包裹 renderVals，修改 clauses 颜色
+    if (inst.renderVals && !inst.__qiheColorFixed) {
+      inst.__qiheColorFixed = true;
+      var _origRV = inst.renderVals;
+      inst.renderVals = function () {
+        var v = _origRV.call(this);
+        if (v && v.clauses && this.clauseData) {
+          v.clauses = v.clauses.map(function (c, i) {
+            var level = this.clauseData[i] ? this.clauseData[i].level : null;
+            if (level === 'high') {
+              c.riskLabel = '高风险';
+              c.tagStyle = 'font-size:12px;font-weight:700;color:#fff;background:#dc2626;padding:3px 9px;border-radius:7px;';
+              c.bodyStyle = 'font-size:14.5px;line-height:1.75;color:#3a4763;background:#fef2f2;border-left:3px solid #dc2626;padding:9px 12px;border-radius:0 10px 10px 0;';
+              c.bubbleWrapStyle = 'position:relative;margin-top:11px;margin-left:10px;background:#fff;border:1px solid #fecaca;border-radius:4px 14px 14px 14px;padding:12px 14px;box-shadow:0 6px 18px rgba(220,38,38,0.08);';
+              c.pointerStyle = 'position:absolute;top:-7px;left:16px;width:12px;height:12px;background:#fff;border-left:1px solid #fecaca;border-top:1px solid #fecaca;transform:rotate(45deg);';
+            } else if (level === 'low') {
+              c.riskLabel = '低风险';
+              c.tagStyle = 'font-size:12px;font-weight:700;color:#fff;background:#d97706;padding:3px 9px;border-radius:7px;';
+              c.bodyStyle = 'font-size:14.5px;line-height:1.75;color:#3a4763;background:#fffbeb;border-left:3px solid #d97706;padding:9px 12px;border-radius:0 10px 10px 0;';
+              c.bubbleWrapStyle = 'position:relative;margin-top:11px;margin-left:10px;background:#fff;border:1px solid #fde68a;border-radius:4px 14px 14px 14px;padding:12px 14px;box-shadow:0 6px 18px rgba(217,119,6,0.08);';
+              c.pointerStyle = 'position:absolute;top:-7px;left:16px;width:12px;height:12px;background:#fff;border-left:1px solid #fde68a;border-top:1px solid #fde68a;transform:rotate(45deg);';
+            }
+            return c;
+          }, this);
+        }
+        return v;
+      };
+    }
 
     console.log('[qihe-bridge] Instance hooked');
   }
