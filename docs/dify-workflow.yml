@@ -26,9 +26,6 @@ workflow:
       - .GIF
       - .WEBP
       - .SVG
-      - .PDF
-      - .DOC
-      - .DOCX
       allowed_file_types:
       - image
       - document
