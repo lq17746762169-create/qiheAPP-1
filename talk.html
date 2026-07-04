@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>契合</title>
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --brand: #4a89f3;
+      --brand-deep: #3f6fe0;
+      --ink: #1a2233;
+      --muted: #97a3b6;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      background: #ffffff;
+    }
+
+    /* 真机上：App 页面铺满整屏 */
+    .app {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background:
+        radial-gradient(120% 80% at 78% 8%, rgba(120, 170, 255, 0.28) 0%, rgba(120, 170, 255, 0) 55%),
+        radial-gradient(110% 70% at 12% 22%, rgba(150, 210, 255, 0.22) 0%, rgba(150, 210, 255, 0) 50%),
+        radial-gradient(120% 90% at 50% 108%, rgba(90, 151, 255, 0.20) 0%, rgba(90, 151, 255, 0) 55%),
+        linear-gradient(180deg, #f3f7ff 0%, #f8fbff 45%, #ffffff 100%);
+    }
+
+    /* 电脑预览时：把 App 约束成 iPhone 12 Pro 尺寸并居中 */
+    @media (min-width: 480px) {
+      body {
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        min-height: 100vh;
+        background: radial-gradient(130% 130% at 50% 0%, #eef2f9 0%, #dfe5ef 100%);
+      }
+
+      .app {
+        width: 390px;
+        height: 844px;
+        min-height: 0;
+        margin-top: auto;
+        margin-bottom: auto;
+        border-radius: 38px;
+        box-shadow:
+          0 30px 80px rgba(40, 70, 130, 0.22),
+          0 2px 0 rgba(255, 255, 255, 0.6) inset;
+      }
+    }
+
+    /* 顶部栏：极简，仅返回 + 品牌名 */
+    .topbar {
+      position: relative;
+      z-index: 2;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 56px;
+      padding: 0 12px;
+    }
+
+    .back-btn {
+      position: absolute;
+      left: 12px;
+      width: 40px;
+      height: 40px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #3a4a63;
+      border-radius: 50%;
+      transition: background 0.18s ease;
+    }
+
+    .back-btn:hover {
+      background: rgba(120, 160, 230, 0.12);
+    }
+
+    .back-btn svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .topbar-title {
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-indent: 0.16em;
+      background: linear-gradient(135deg, #2b4a86 0%, #4a89f3 60%, #6aa6ff 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* 对话区 */
+    .chat {
+      position: relative;
+      z-index: 1;
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 18px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .chat::-webkit-scrollbar {
+      width: 0;
+    }
+
+    .msg {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      max-width: 100%;
+      animation: rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    .msg.user {
+      justify-content: flex-end;
+    }
+
+    /* AI 头像：复用首页渐变球体的小号版本 */
+    .avatar {
+      flex-shrink: 0;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background:
+        radial-gradient(circle at 32% 26%, #ffffff 0%, rgba(255, 255, 255, 0) 44%),
+        linear-gradient(150deg, #86b6ff 0%, #4a89f3 55%, #3a67dc 100%);
+      box-shadow:
+        0 6px 14px rgba(63, 124, 240, 0.32),
+        inset 0 -3px 7px rgba(40, 74, 175, 0.4),
+        inset 0 3px 6px rgba(255, 255, 255, 0.5);
+    }
+
+    .avatar svg {
+      width: 18px;
+      height: 18px;
+      color: rgba(255, 255, 255, 0.97);
+      filter: drop-shadow(0 -1px 1px rgba(38, 78, 170, 0.5));
+    }
+
+    .bubble {
+      max-width: 78%;
+      padding: 12px 16px;
+      font-size: 15.5px;
+      line-height: 1.62;
+      border-radius: 20px;
+      word-break: break-word;
+    }
+
+    /* 用户气泡：蓝色渐变 */
+    .bubble.user {
+      color: #fff;
+      background: linear-gradient(135deg, #6aa6ff 0%, #4a89f3 50%, #3a67dc 100%);
+      border-bottom-right-radius: 6px;
+      box-shadow: 0 8px 20px rgba(63, 124, 240, 0.32);
+    }
+
+    /* AI 气泡：毛玻璃白 */
+    .bubble.ai {
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.78);
+      -webkit-backdrop-filter: blur(14px);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      border-bottom-left-radius: 6px;
+      box-shadow: 0 8px 22px rgba(63, 124, 240, 0.1);
+    }
+
+    .bubble .list {
+      margin: 6px 0 2px;
+      padding-left: 2px;
+      list-style: none;
+    }
+
+    .bubble .list li {
+      position: relative;
+      padding-left: 22px;
+      margin: 4px 0;
+      color: #37507d;
+    }
+
+    .bubble .list li span {
+      position: absolute;
+      left: 0;
+      top: 0;
+      color: var(--brand);
+      font-weight: 600;
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 底部输入区（沿用首页毛玻璃风格） */
+    .input-dock {
+      position: relative;
+      z-index: 1;
+      flex-shrink: 0;
+      padding: 8px 20px calc(20px + env(safe-area-inset-bottom));
+    }
+
+    .input-shell {
+      position: relative;
+      background: rgba(255, 255, 255, 0.72);
+      -webkit-backdrop-filter: blur(20px) saturate(1.2);
+      backdrop-filter: blur(20px) saturate(1.2);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      border-radius: 28px;
+      padding: 14px 14px 10px;
+      box-shadow:
+        0 12px 36px rgba(63, 124, 240, 0.14),
+        0 1px 0 rgba(255, 255, 255, 0.8) inset;
+      transition: box-shadow 0.25s ease, border-color 0.25s ease;
+    }
+
+    .input-shell:focus-within {
+      border-color: rgba(90, 151, 255, 0.55);
+      box-shadow:
+        0 16px 44px rgba(63, 124, 240, 0.24),
+        0 0 0 3px rgba(90, 151, 255, 0.16);
+    }
+
+    .input-field {
+      width: 100%;
+      border: none;
+      outline: none;
+      resize: none;
+      font-size: 16px;
+      line-height: 1.5;
+      color: var(--ink);
+      background: transparent;
+      padding: 2px 4px 10px;
+      font-family: inherit;
+    }
+
+    .input-field::placeholder {
+      color: #aab4c4;
+    }
+
+    .input-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .tool-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .tool-btn {
+      width: 40px;
+      height: 40px;
+      border: 1px solid rgba(120, 160, 230, 0.28);
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.7);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--brand);
+      transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+    }
+
+    .tool-btn:hover {
+      background: #eef4ff;
+      border-color: rgba(120, 160, 230, 0.55);
+      transform: translateY(-1px);
+    }
+
+    .tool-btn:active {
+      transform: scale(0.94);
+    }
+
+    .tool-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .btn-send {
+      position: relative;
+      width: 46px;
+      height: 46px;
+      border: none;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #6aa6ff 0%, #4a89f3 50%, #3a67dc 100%);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      box-shadow: 0 8px 20px rgba(63, 124, 240, 0.45);
+      transition: transform 0.15s ease, box-shadow 0.2s ease;
+    }
+
+    .btn-send:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 26px rgba(63, 124, 240, 0.5);
+    }
+
+    .btn-send:active {
+      transform: scale(0.93);
+    }
+
+    .btn-send svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .msg {
+        animation: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <button class="back-btn" type="button" aria-label="返回" onclick="window.location.href='index.html'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+      <div class="topbar-title">契合</div>
+    </header>
+
+    <main class="chat" id="chat"></main>
+
+    <div class="input-dock">
+      <div class="input-shell">
+        <textarea
+          id="inputField"
+          class="input-field"
+          rows="1"
+          placeholder="继续输入或上传合同文件"
+          aria-label="输入消息"
+        ></textarea>
+        <div class="input-toolbar">
+          <div class="tool-left">
+            <button class="tool-btn" type="button" aria-label="上传文件" onclick="document.getElementById('fileInput').click()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </button>
+            <button class="tool-btn" type="button" aria-label="语音输入">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                <line x1="12" y1="19" x2="12" y2="23"></line>
+                <line x1="8" y1="23" x2="16" y2="23"></line>
+              </svg>
+            </button>
+          </div>
+          <button class="btn-send" type="button" aria-label="发送" onclick="sendMessage()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="19" x2="12" y2="5"></line>
+              <polyline points="5 12 12 5 19 12"></polyline>
+            </svg>
+          </button>
+        </div>
+        <input id="fileInput" class="file-input" type="file" multiple />
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const field = document.getElementById('inputField');
+    const chat = document.getElementById('chat');
+
+    const AVATAR_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.4 8.4 8 11 4.6-2.6 8-6 8-11V5l-8-3z"/><polyline points="9 12 11.5 14.5 15.5 9.5"/></svg>';
+
+    field.addEventListener('input', () => {
+      field.style.height = 'auto';
+      field.style.height = Math.min(field.scrollHeight, 140) + 'px';
+    });
+
+    function scrollToBottom() {
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function appendUserMessage(text) {
+      const row = document.createElement('div');
+      row.className = 'msg user';
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble user';
+      bubble.textContent = text;
+      row.appendChild(bubble);
+      chat.appendChild(row);
+      scrollToBottom();
+    }
+
+    function appendAiMessage(html) {
+      const row = document.createElement('div');
+      row.className = 'msg ai';
+      const avatar = document.createElement('div');
+      avatar.className = 'avatar';
+      avatar.setAttribute('aria-hidden', 'true');
+      avatar.innerHTML = AVATAR_SVG;
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble ai';
+      bubble.innerHTML = html;
+      row.appendChild(avatar);
+      row.appendChild(bubble);
+      chat.appendChild(row);
+      scrollToBottom();
+    }
+
+    // 根据用户消息生成契合的回复
+    function replyFor(text) {
+      if (text === '拟定合同') {
+        return '好的，我来帮你拟定合同。请补充以下信息：' +
+          '<ul class="list">' +
+          '<li><span>①</span>合同双方主体</li>' +
+          '<li><span>②</span>标的与金额</li>' +
+          '<li><span>③</span>关键条款要求</li>' +
+          '</ul>我会据此生成一份条款完整的合同草案。';
+      }
+      if (text === '审查合同') {
+        return '好的，我来帮你审查合同。请上传合同文件，或直接粘贴条款内容，我会逐条标注潜在风险与不利条款，并给出修改建议。';
+      }
+      return '好的，我已收到你的需求。请补充合同双方主体、标的与金额及关键条款要求，我会据此为你生成一份条款完整的合同草案。';
+    }
+
+    function sendMessage() {
+      const text = field.value.trim();
+      if (!text) return;
+      appendUserMessage(text);
+      field.value = '';
+      field.style.height = 'auto';
+      // TODO: 接入实际回复逻辑；此处先给出引导式回复
+      setTimeout(() => appendAiMessage(replyFor(text)), 300);
+    }
+
+    // 读取来自首页的首条消息并开启对话
+    (function initFromHome() {
+      const params = new URLSearchParams(window.location.search);
+      const q = (params.get('q') || '').trim() || '拟定合同';
+      appendUserMessage(q);
+      appendAiMessage(replyFor(q));
+    })();
+  </script>
+</body>
+</html>
