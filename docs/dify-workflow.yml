@@ -523,7 +523,7 @@ workflow:
             user: ''
           window:
             enabled: true
-            size: 31
+            size: 20
         model:
           completion_params:
             temperature: 0.3
