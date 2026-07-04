@@ -67,37 +67,12 @@ workflow:
   graph:
     edges:
     - data:
-        isInIteration: false
-        isInLoop: false
-        sourceType: if-else
-        targetType: llm
-      id: 1782954969341-d8960280-eacb-44ae-9437-3efc4b9c664e-1782955957297-target
-      selected: false
-      source: '1782954969341'
-      sourceHandle: d8960280-eacb-44ae-9437-3efc4b9c664e
-      target: '1782955957297'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
         isInLoop: false
         sourceType: llm
         targetType: answer
       id: 1782955930399-source-1782956511082-target
       selected: false
       source: '1782955930399'
-      sourceHandle: source
-      target: '1782956511082'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
-        sourceType: llm
-        targetType: answer
-      id: 1782955957297-source-1782956511082-target
-      selected: false
-      source: '1782955957297'
       sourceHandle: source
       target: '1782956511082'
       targetHandle: target
@@ -143,31 +118,6 @@ workflow:
         isInIteration: false
         isInLoop: false
         sourceType: if-else
-        targetType: code
-      id: 1782954969341-true-1783010586232-target
-      selected: false
-      source: '1782954969341'
-      sourceHandle: 'true'
-      target: '1783010586232'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
-        sourceType: code
-        targetType: answer
-      id: 1783010586232-source-1782956511082-target
-      selected: false
-      source: '1783010586232'
-      sourceHandle: source
-      target: '1782956511082'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInIteration: false
-        isInLoop: false
-        sourceType: if-else
         targetType: answer
       id: 1782954969341-false-1783012482085-target
       selected: false
@@ -190,39 +140,6 @@ workflow:
       zIndex: 0
     - data:
         isInLoop: false
-        sourceType: start
-        targetType: if-else
-      id: 1782954926822-source-17831494913330-target
-      source: '1782954926822'
-      sourceHandle: source
-      target: '17831494913330'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
-        sourceType: if-else
-        targetType: document-extractor
-      id: 17831494913330-4c8e791e-49c7-4cef-952b-6f8fb278ce81-1783097464311-target
-      source: '17831494913330'
-      sourceHandle: 4c8e791e-49c7-4cef-952b-6f8fb278ce81
-      target: '1783097464311'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
-        sourceType: if-else
-        targetType: answer
-      id: 17831494913330-false-1783147686423-target
-      source: '17831494913330'
-      sourceHandle: 'false'
-      target: '1783147686423'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
         sourceType: llm
         targetType: if-else
       id: llm-source-1782954969341-target
@@ -234,11 +151,67 @@ workflow:
       type: custom
       zIndex: 0
     - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: if-else
+        targetType: llm
+      id: 1782954969341-d8960280-eacb-44ae-9437-3efc4b9c664e-1783195548608-target
+      source: '1782954969341'
+      sourceHandle: d8960280-eacb-44ae-9437-3efc4b9c664e
+      target: '1783195548608'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: answer
+      id: 1783195548608-source-1782956511082-target
+      source: '1783195548608'
+      sourceHandle: source
+      target: '1782956511082'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: code
+      id: 1782954969341-true-1783200199226-target
+      source: '1782954969341'
+      sourceHandle: 'true'
+      target: '1783200199226'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: code
+        targetType: answer
+      id: 1783200199226-source-1782956511082-target
+      source: '1783200199226'
+      sourceHandle: source
+      target: '1782956511082'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: start
+        targetType: if-else
+      id: 1782954926822-source-17832008766190-target
+      source: '1782954926822'
+      sourceHandle: source
+      target: '17832008766190'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
         isInLoop: false
         sourceType: if-else
         targetType: document-extractor
-      id: 17831494913330-f866e5bd-10da-4376-a939-d7ffbe6c1adb-1783097464311-target
-      source: '17831494913330'
+      id: 17832008766190-f866e5bd-10da-4376-a939-d7ffbe6c1adb-1783097464311-target
+      source: '17832008766190'
       sourceHandle: f866e5bd-10da-4376-a939-d7ffbe6c1adb
       target: '1783097464311'
       targetHandle: target
@@ -248,10 +221,32 @@ workflow:
         isInLoop: false
         sourceType: if-else
         targetType: llm
-      id: 17831494913330-6ee4b5ac-1405-4235-b7f3-d7e2206c4241-llm-target
-      source: '17831494913330'
+      id: 17832008766190-6ee4b5ac-1405-4235-b7f3-d7e2206c4241-llm-target
+      source: '17832008766190'
       sourceHandle: 6ee4b5ac-1405-4235-b7f3-d7e2206c4241
       target: llm
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: document-extractor
+      id: 17832008766190-4c8e791e-49c7-4cef-952b-6f8fb278ce81-1783097464311-target
+      source: '17832008766190'
+      sourceHandle: 4c8e791e-49c7-4cef-952b-6f8fb278ce81
+      target: '1783097464311'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: answer
+      id: 17832008766190-false-1783147686423-target
+      source: '17832008766190'
+      sourceHandle: 'false'
+      target: '1783147686423'
       targetHandle: target
       type: custom
       zIndex: 0
@@ -265,11 +260,11 @@ workflow:
       id: '1782954926822'
       position:
         x: 0
-        y: 181.3131313131313
+        y: 221.10887740257863
       positionAbsolute:
         x: 0
-        y: 181.3131313131313
-      selected: false
+        y: 221.10887740257863
+      selected: true
       sourcePosition: right
       targetPosition: left
       type: custom
@@ -279,13 +274,7 @@ workflow:
           enabled: false
           variable_selector: []
         memory:
-          query_prompt_template: '{{#sys.query#}}
-
-
-            {{#sys.files#}}
-
-
-            {{#1783097464311.text#}}'
+          query_prompt_template: '{{#sys.query#}}{{#1783097464311.text#}}{{#sys.files#}}'
           role_prefix:
             assistant: ''
             user: ''
@@ -325,12 +314,9 @@ workflow:
             当用户输入与合同业务完全无关时，输出"无关内容"
 
 
-            当用户输入和文档内容都无关时，输出"无关内容"
+            当用户输入和文档内容都无关时，输出无关内容
 
             '
-        - id: f26d5b1f-b81a-4e82-b44e-58b818e35e25
-          role: user
-          text: '{{#sys.query#}}{{#sys.files#}}'
         selected: false
         title: 识别意图
         type: llm
@@ -424,10 +410,7 @@ workflow:
           query_prompt_template: '{{#sys.query#}}
 
 
-            {{#sys.files#}}
-
-
-            {{#1783097464311.text#}}'
+            {{#sys.files#}}{{#1783097464311.text#}}'
           role_prefix:
             assistant: ''
             user: ''
@@ -444,6 +427,7 @@ workflow:
         - id: b47d7b7b-ccc4-472d-bde3-39d6757e5df9
           role: system
           text: '你正在帮用户拟定一份房屋租赁合同。你需要结合{{#context#}}和{{#sys.query#}}收集以下必填信息。
+
 
             【必填信息清单】
 
@@ -488,9 +472,7 @@ workflow:
 
             - （列出1-3项缺失的必填信息）
 
-            你可以一次性发给我，也可以分几条发送。
-
-            '
+            你可以一次性发给我，也可以分几条发送。'
         selected: false
         title: 拟定合同
         type: llm
@@ -509,159 +491,6 @@ workflow:
       positionAbsolute:
         x: 1770
         y: 132
-      selected: false
-      sourcePosition: right
-      targetPosition: left
-      type: custom
-      width: 242
-    - data:
-        context:
-          enabled: false
-          variable_selector: []
-        memory:
-          query_prompt_template: '{{#sys.query#}}
-
-
-            {{#sys.files#}}
-
-
-            {{#1783097464311.text#}}'
-          role_prefix:
-            assistant: ''
-            user: ''
-          window:
-            enabled: true
-            size: 20
-        model:
-          completion_params:
-            temperature: 0.3
-          mode: chat
-          name: google/gemini-3.1-flash-lite-preview
-          provider: langgenius/openrouter/openrouter
-        prompt_template:
-        - id: ecab5185-32cd-43ac-98ae-b6d2dbb3ed04
-          role: system
-          text: '你正在帮用户审查一份房屋租赁合同。你需要结合{{#context#}}和{{#sys.query#}}对用户上传或提供的合同内容进行逐条审查，并生成结构化的审查报告。
-
-
-            审查维度（占位，后续由律师确认）：
-
-            1、高风险——条款直接违反法律强制性规定，或导致合同部分/全部无效，条款本身即可定性。共六大类：
-
-            •主体与权属：出租方主体不适格（如未成年人无监护人签字）。
-
-            •租赁期限：期限违法（如超过20 年、未约定期限且无解除通知期）。
-
-            •押金与费用：强制租金贷、押金超地方上限等。
-
-            •居住安全：出租非居住空间、隐性群租、隔断间出租。
-
-            •权利剥夺：排除法定解除权、随意入户、随意扣押金、免除人身损害责任、禁止投诉维权。
-
-            •歧视与违禁：禁止特定人群入住、约定违法用途。
-
-
-            2、中风险——条款本身不违法，但一方权利义务明显失衡，可能在实际履行中产生较大争议。共五大类：
-
-            •权责不对等：单方终止权、单方调价权、不合理的免责条款。
-
-            •费用分担：维修责任全归一方、水电分摊不合理、退押金条件单方决定。
-
-            •违约责任失衡：违约金比例畸高、一方解除即丧失全部押金。
-
-            •管辖与争议：约定对一方明显不利的管辖法院或仲裁机构。
-
-            •格式条款：对重要条款未尽提示说明义务。
-
-
-            3、低风险——条款本身不违法，但表述模糊、权责不清或单边不公平，履约中大概率引发纠纷。共七大类：
-
-            •房屋状态与交付：无交付清单、设施归属不清、初始读数未约定。
-
-            •租金与费用：涨租无约束、水电分摊不清、押金退还无期限、违约金/滞纳金约定缺失。
-
-            •维修责任：维修责任划分不清、响应时间未约定、损耗界定不明。
-
-            •提前退租与续租：退租赔偿不明、通知期未约定、续租权与涨价无约束。
-
-            •房屋返还：恢复原状标准模糊、验收流程缺失、遗留物处理未约定。
-
-            •转租与同住人：转租条件模糊、同住人变更不明、宠物规则缺失。
-
-            •特殊情形：不可抗力、征收拆迁、买卖不破租赁、争议解决条款缺失。
-
-
-            输出格式要求：按以下结构输出审查报告，每个风险项严格遵循三段式格式：
-
-
-            ## 整体风险总结
-
-            （用一段话概括本合同的主要风险点和整体风险等级）
-
-
-            ---
-
-
-            ## 风险明细
-
-
-            ### [高风险] 风险标题
-
-            > 条款原文：引用合同中相关的原文内容
-
-
-            风险描述：详细说明该条款存在的具体风险及潜在后果
-
-
-            ---
-
-
-            ### [中风险] 风险标题
-
-            > 条款原文：引用合同中相关的原文内容
-
-
-            风险描述：详细说明该条款存在的具体风险及潜在后果
-
-
-            ---
-
-
-            ### [低风险] 风险标题
-
-            > 条款原文：引用合同中相关的原文内容
-
-
-            风险描述：详细说明该条款存在的具体风险及潜在后果
-
-
-            规则：
-
-            1. 高风险标签为 [高风险]，中风险标签为 [中风险]，低风险标签为 [低风险]
-
-            2. 每个风险项必须包含：标签+标题 → 条款原文引用 → 风险描述，不遗漏
-
-            3. 如果没有发现某类风险，说明"未发现明显的高风险/中风险/低风险条款"
-
-            4. 如果用户未提供合同内容，提示用户上传或输入'
-        selected: false
-        title: 审查合同
-        type: llm
-        vision:
-          configs:
-            detail: high
-            variable_selector:
-            - sys
-            - files
-          enabled: true
-      height: 88
-      id: '1782955957297'
-      position:
-        x: 1770
-        y: 300
-      positionAbsolute:
-        x: 1770
-        y: 300
       selected: false
       sourcePosition: right
       targetPosition: left
@@ -728,7 +557,7 @@ workflow:
       type: custom-note
       width: 240
     - data:
-        answer: '{{#1782955930399.text#}}{{#1782955957297.text#}}{{#1782955965731.text#}}{{#1783010586232.result#}}'
+        answer: '{{#1782955930399.text#}}{{#1783195548608.text#}}{{#1782955965731.text#}}{{#1783200199226.result#}}'
         selected: false
         title: 直接回复
         type: answer
@@ -737,34 +566,10 @@ workflow:
       id: '1782956511082'
       position:
         x: 2132
-        y: 298.5353535353536
+        y: 267.0202020202021
       positionAbsolute:
         x: 2132
-        y: 298.5353535353536
-      selected: false
-      sourcePosition: right
-      targetPosition: left
-      type: custom
-      width: 242
-    - data:
-        code: "def main() -> dict:\n    # 合同模板标识符，前端识别后自动从后端拉取模板\n    template = \"<<<TEMPLATE:housing_lease>>>\"\n    return {\"result\": template}"
-        code_language: python3
-        outputs:
-          result:
-            children: null
-            type: string
-        selected: false
-        title: 代码执行
-        type: code
-        variables: []
-      height: 52
-      id: '1783010586232'
-      position:
-        x: 1770
-        y: 0
-      positionAbsolute:
-        x: 1770
-        y: 0
+        y: 267.0202020202021
       selected: false
       sourcePosition: right
       targetPosition: left
@@ -801,10 +606,10 @@ workflow:
       id: '1783097464311'
       position:
         x: 704
-        y: 156.75757575757575
+        y: 288.65656565656565
       positionAbsolute:
         x: 704
-        y: 156.75757575757575
+        y: 288.65656565656565
       selected: false
       sourcePosition: right
       targetPosition: left
@@ -820,10 +625,191 @@ workflow:
       id: '1783147686423'
       position:
         x: 704
-        y: 361.75757575757575
+        y: 472.6565656565656
       positionAbsolute:
         x: 704
-        y: 361.75757575757575
+        y: 472.6565656565656
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        memory:
+          query_prompt_template: '{{#sys.query#}}
+
+
+            {{#sys.files#}}{{#1783097464311.text#}}'
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: true
+            size: 20
+        model:
+          completion_params:
+            temperature: 0.3
+          mode: chat
+          name: google/gemini-3.1-flash-lite-preview
+          provider: langgenius/openrouter/openrouter
+        prompt_template:
+        - id: f3850e85-d031-4368-824e-da61a819c36f
+          role: system
+          text: '你正在帮用户审查一份房屋租赁合同。你需要结合{{#context#}}和{{#sys.query#}}对用户上传或提供的合同内容进行逐条审查，并生成结构化的审查报告。
+
+
+
+            审查维度（后续由律师确认）：
+
+
+            1、高风险——条款直接违反法律强制性规定，或导致合同部分/全部无效，条款本身即可定性。共六大类：
+
+            •主体与权属：出租方主体不适格
+
+            •租赁期限：期限违法
+
+            •押金与费用：强制租金贷、押金超地方上限等
+
+            •居住安全：出租非居住空间、隐性群租
+
+            •权利剥夺：排除法定解除权、随意扣押金、免除人身损害责任
+
+            •歧视与违禁：禁止特定人群入住
+
+
+
+            2、中风险——条款本身不违法但权利义务明显失衡。共五大类：
+
+            •权责不对等：单方终止权、不合理的免责条款
+
+            •费用分担：维修全归一方、退押金条件单方决定
+
+            •违约责任失衡：违约金畸高、一方解除即丧失全部押金
+
+            •管辖与争议：对一方明显不利的管辖
+
+            •格式条款：未对重要条款尽提示说明义务
+
+
+
+            3、低风险——表述模糊权责不清，履约中可能引发纠纷。共七大类：
+
+            •房屋状态与交付：无交付清单、设施归属不清
+
+            •租金与费用：水电分摊不清、押金退还无期限
+
+            •维修责任：划分不清、响应时间未约定
+
+            •提前退租与续租：退租赔偿不明、通知期未约定
+
+            •房屋返还：恢复原状标准模糊、验收流程缺失
+
+            •转租与同住人：转租条件模糊、宠物规则缺失
+
+            •特殊情形：不可抗力、征收拆迁、争议解决条款缺失
+
+
+
+            输出格式要求：按以下结构输出，每个风险项严格遵循三段式：
+
+
+            ## 整体风险总结
+
+            （用一段话概括本合同的主要风险点和整体风险等级）
+
+
+            ---
+
+
+            ## 风险明细
+
+
+            ### [高风险] 风险标题
+
+            > 条款原文：引用合同中相关原文内容
+
+
+            风险描述：详细说明存在的具体风险及潜在后果
+
+
+            ---
+
+
+            ### [中风险] 风险标题
+
+            > 条款原文：引用合同中相关原文内容
+
+
+            风险描述：详细说明存在的具体风险及潜在后果
+
+
+            ---
+
+
+            ### [低风险] 风险标题
+
+            > 条款原文：引用合同中相关原文内容
+
+
+            风险描述：详细说明存在的具体风险及潜在后果
+
+
+            规则：
+
+            1. 标签为 [高风险]/[中风险]/[低风险]
+
+            2. 必须包含：标签+标题 → 条款原文 → 风险描述
+
+            3. 无风险的类别说明"未发现"
+
+            4. 未提供合同内容时，提示用户上传或输入'
+        selected: false
+        structured_output_enabled: false
+        title: 审查合同
+        type: llm
+        vision:
+          configs:
+            detail: high
+            variable_selector:
+            - sys
+            - files
+          enabled: true
+      height: 88
+      id: '1783195548608'
+      position:
+        x: 1770
+        y: 300
+      positionAbsolute:
+        x: 1770
+        y: 300
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        code: "def main() -> dict:\n    template = \"<<<TEMPLATE:housing_lease>>>\"\
+          \n    return {\"result\": template}"
+        code_language: python3
+        outputs:
+          result:
+            children: null
+            type: string
+        selected: false
+        title: 代码执行
+        type: code
+        variables: []
+      height: 52
+      id: '1783200199226'
+      position:
+        x: 1729.4124722162082
+        y: -0.6614555767897023
+      positionAbsolute:
+        x: 1729.4124722162082
+        y: -0.6614555767897023
       selected: false
       sourcePosition: right
       targetPosition: left
@@ -909,23 +895,23 @@ workflow:
         isInIteration: false
         isInLoop: false
         selected: false
-        title: 条件分支1 (1)
+        title: 条件分支1 (2)
         type: if-else
       height: 346
-      id: '17831494913330'
+      id: '17832008766190'
       position:
-        x: 342
-        y: 56.97979797979792
+        x: 319.102143224165
+        y: 74.83004059599256
       positionAbsolute:
-        x: 342
-        y: 56.97979797979792
+        x: 319.102143224165
+        y: 74.83004059599256
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
       width: 242
     viewport:
-      x: 76.2272807462665
-      y: 241.3994098878254
-      zoom: 1.0610015965572808
+      x: -1498.8504191061693
+      y: 326.4013676561781
+      zoom: 0.8705505632961248
   rag_pipeline_variables: []
