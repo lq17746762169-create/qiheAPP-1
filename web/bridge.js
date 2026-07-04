@@ -68,13 +68,17 @@
       window.QiheAPI.send('请审查以下文件：' + (name || '合同文件'));
     };
 
-    // 修复返回逻辑：从风险详情退回时应回到聊天页而非首页
+    // 修复返回逻辑：聊天浮层 + 风险详情叠加，点返回先关聊天暴露详情
     if (!inst.__qiheBackFixed) {
       inst.__qiheBackFixed = true;
       var origBackHome = inst.backHome;
       inst.backHome = function () {
         if (this.state.chatOpen && this.state.review === 'detail') {
-          this.setState({ review: null });
+          // 聊天盖在审查详情上 → 关聊天露出详情
+          this.setState({ chatOpen: false });
+        } else if (this.state.review === 'detail') {
+          // 关详情 → 回聊天
+          this.setState({ review: null, chatOpen: true });
         } else if (origBackHome) {
           origBackHome.call(this);
         } else {
@@ -224,11 +228,12 @@
                 break;
               }
             }
-            // 不自动跳转详情：留在聊天页
+            // 不自动跳转：聊天浮层盖在审查详情上，用户读完摘要点返回看详情
             inst.setState({
               reviewLoading: false,
+              review: 'detail',
+              reviewTab: 'text',
               chatOpen: true,
-              review: null,
               activeDoc: 'review',
             });
           }
