@@ -96,6 +96,8 @@
         if (v && v.clauses && this.clauseData) {
           v.clauses = v.clauses.map(function (c, i) {
             var level = this.clauseData[i] ? this.clauseData[i].level : null;
+            // 兜底：索引不匹配的默认按高风险处理
+            if (!level) { c.riskLabel = '高风险'; return c; }
             if (level === 'high') {
               c.riskLabel = '高风险';
               c.tagStyle = 'font-size:12px;font-weight:700;color:#fff;background:#dc2626;padding:3px 9px;border-radius:7px;';
@@ -236,6 +238,8 @@
               chatOpen: true,
               activeDoc: 'review',
             });
+            // 强制重渲染以确保 renderVals 使用最新的 clauseData
+            setTimeout(function () { inst.setState({}); }, 100);
           }
         }
       }
