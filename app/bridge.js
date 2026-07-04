@@ -108,6 +108,25 @@
             return c;
           }, this);
         }
+        // 修正风险 Tab 视图颜色（risks 数组）
+        if (v && v.risks && this.reviewDocs) {
+          var doc = this.reviewDocs[this.state.activeDoc] || this.reviewDocs.review;
+          if (doc && doc.risks) {
+            v.risks = v.risks.map(function (c, i) {
+              var level = doc.risks[i] ? doc.risks[i].level : null;
+              if (level === 'high') {
+                c.riskLabel = '高风险';
+                c.tagStyle = 'font-size:12px;font-weight:700;color:#fff;background:#dc2626;padding:3px 9px;border-radius:7px;';
+                c.cardStyle = 'background:#fff;border:1px solid #fecaca;border-left:4px solid #dc2626;border-radius:15px;padding:14px;box-shadow:0 6px 18px rgba(220,38,38,0.06);';
+              } else if (level === 'low') {
+                c.riskLabel = '低风险';
+                c.tagStyle = 'font-size:12px;font-weight:700;color:#fff;background:#d97706;padding:3px 9px;border-radius:7px;';
+                c.cardStyle = 'background:#fff;border:1px solid #fde68a;border-left:4px solid #d97706;border-radius:15px;padding:14px;box-shadow:0 6px 18px rgba(217,119,6,0.06);';
+              }
+              return c;
+            });
+          }
+        }
         return v;
       };
     }
@@ -197,6 +216,14 @@
             // 提取整体风险总结作为聊天文字
             var summaryMatch = (d.raw || '').match(/##\s*整体风险总结\s*\n([\s\S]*?)(?=\n---|\n##\s*风险明细|\n###\s*\[|$)/);
             var summary = summaryMatch ? summaryMatch[1].trim() : (d.text || '');
+            // 替换聊天框最后一条消息为摘要
+            var msgs = inst.state.messages || [];
+            for (var i = msgs.length - 1; i >= 0; i--) {
+              if (msgs[i].role === 'ai' && !msgs[i].type && (msgs[i].text || '').length > 20) {
+                msgs[i] = Object.assign({}, msgs[i], { text: summary });
+                break;
+              }
+            }
             // 不自动跳转详情：留在聊天页
             inst.setState({
               reviewLoading: false,
