@@ -14,19 +14,22 @@ function fixColors(){try{
 var _btnInjected = false;
 function injectReviewBtn(){
   if(_btnInjected) return;
-  var I=window._qiheActiveInstance; if(!I||!I.clauseData||!I.clauseData.length) return;
-  var bubbles=document.querySelectorAll('[class*="bubble"], [class*="msg"] [class*="ai"], [class*="chat"] [class*="ai"]');
-  var lastAi=null; for(var i=bubbles.length-1;i>=0;i--){var b=bubbles[i];if(b.textContent&&b.textContent.length>20&&b.querySelector('[class*="review-btn"]')===null){lastAi=b;break}}
-  if(!lastAi) return;
-  // 防止重复
   if(document.getElementById('__qihe_review_btn')) return;
+  var I=window._qiheActiveInstance; if(!I||!I.clauseData||!I.clauseData.length) return;
+  // 全文搜索含"整体风险"的 DOM 节点
+  var all = document.querySelectorAll('*');
+  var lastEl = null;
+  for(var i=all.length-1;i>=0;i--){
+    var el=all[i]; var t=(el.textContent||'');
+    if(t.indexOf('整体风险')>=0||t.indexOf('风险等级')>=0){lastEl=el;break}
+  }
+  if(!lastEl) return;
   var btn=document.createElement('div');
-  btn.id='__qihe_review_btn';
-  btn.textContent='查看风险报告';
-  btn.style.cssText='display:inline-block;margin-top:10px;padding:9px 20px;border-radius:10px;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 4px 12px rgba(37,99,235,0.3);text-align:center;';
-  btn.onclick=function(){if(I&&I.setState){I.setState({chatOpen:false})}};
-  lastAi.appendChild(btn);
-  _btnInjected = true;
+  btn.id='__qihe_review_btn'; btn.textContent='查看风险报告';
+  btn.style.cssText='display:block;margin-top:12px;padding:10px;border-radius:12px;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;font-size:14px;font-weight:600;text-align:center;cursor:pointer;box-shadow:0 4px 14px rgba(37,99,235,0.35);';
+  btn.onclick=function(){if(I&&I.setState){I.setState({chatOpen:false});}};
+  lastEl.parentElement.appendChild(btn);
+  _btnInjected=true;
 }
 
 // --- MutationObserver: 颜色 + 按钮 ---
