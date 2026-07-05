@@ -13,12 +13,14 @@
   'use strict';
 
   // ===== 配置 =====
+  // 线上后端（部署后填写，手机封装可通过 window.__QIHE_API_BASE__ 注入，无需改代码）
+  const PRODUCTION_API = (typeof window !== 'undefined' && window.__QIHE_API_BASE__) || '';
   const REMOTE_API = 'http://localhost:3000';
   const FALLBACK_API = 'http://localhost:3002';
   const DIRECT_DIFY_BASE = 'https://api.dify.ai/v1';
   const DIRECT_DIFY_API_KEY = 'app-PSvdjW5cksiz7CMjX0bfZdIJ';
-  // 默认优先同源（用于封装后端同端口托管）；若当前 3000 不是后端，会在运行时探活并自动回退。
-  let API_BASE = location.protocol === 'file:' ? REMOTE_API : '';
+  // 运行时探活决定 API_BASE；手机 file:// 环境优先探测 PRODUCTION_API，失败则直连 Dify。
+  let API_BASE = '';
   let _apiProbe = null;
   // 内嵌标准模板数据（供离线/封装环境直接使用，无需请求后端或本地文件）
   const EMBEDDED_TEMPLATES = { housing_lease: {"id":"housing_lease","name":"房屋租赁合同模板","description":"适用于住宅/商用房屋租赁场景的标准合同模板（当前为占位版本，待替换为正式定稿）","updatedAt":"2026-07-04","filename":"房屋租赁合同模板.docx","previewHtml":"<p><strong>房屋租赁合同</strong></p><p>（占位模板 · 待替换为正式定稿文件）</p><p>出租方（甲方）：____________________</p><p>承租方（乙方）：____________________</p><p>根据《中华人民共和国民法典》及相关法律法规，甲乙双方在平等、自愿、协商一致的基础上，就房屋租赁事宜达成如下协议：</p><p><strong>第一条 房屋基本情况</strong></p><p>甲方将坐落于 ____________________ 的房屋出租给乙方使用，建筑面积约 ______ 平方米，户型 __________。</p><p><strong>第二条 租赁期限</strong></p><p>租赁期自 ______ 年 __ 月 __ 日起至 ______ 年 __ 月 __ 日止。</p><p><strong>第三条 租金及支付方式</strong></p><p>月租金为人民币 ______ 元（大写：____________________），押金 ______ 元，支付方式为 __________。</p><p><strong>第四条 水电气及物业费</strong></p><p>租赁期间产生的水、电、燃气及物业等费用由 __________ 承担。</p><p><strong>第五条 双方权利与义务</strong></p><p>甲乙双方应按照本合同约定履行各自义务，保障对方合法权益。</p><p><strong>第六条 违约责任</strong></p><p>任何一方违反本合同约定，应向对方支付违约金并赔偿由此造成的损失。</p><p><strong>签署</strong></p><p>出租方（甲方）签字：__________          承租方（乙方）签字：__________</p><p>签订日期：____ 年 __ 月 __ 日            签订日期：____ 年 __ 月 __ 日</p>"} };
@@ -35,9 +37,15 @@
     if (_apiProbe) return _apiProbe;
     _apiProbe = (async () => {
       const candidates = [];
-      if (location.protocol !== 'file:') candidates.push(''); // 当前 origin
-      candidates.push(REMOTE_API);
-      if (FALLBACK_API !== REMOTE_API) candidates.push(FALLBACK_API);
+      const isPackaged = location.protocol === 'file:';
+      // 手机封装：优先线上 HTTPS 后端（不依赖局域网 / 同一 Wi-Fi）
+      if (isPackaged) {
+        if (PRODUCTION_API) candidates.push(PRODUCTION_API);
+      } else {
+        candidates.push('');
+        candidates.push(REMOTE_API);
+        if (FALLBACK_API !== REMOTE_API) candidates.push(FALLBACK_API);
+      }
       for (const base of candidates) {
         try {
           const resp = await fetchWithTimeout(base + '/api/health', 1500);
@@ -188,8 +196,28 @@
     const lowered = raw.toLowerCase();
     if (!raw) return '';
     if (lowered === 'housing_lease' || lowered === 'housing-lease' || lowered === 'housinglease') return 'housing_lease';
-    if (raw === '房屋租赁合同' || raw === '租赁合同') return 'housing_lease';
+    if (raw === '房屋租赁合同' || raw === '租赁合同' || raw === '房屋租赁合同模板') return 'housing_lease';
     return lowered.replace(/\s+/g, '_').replace(/[^a-z0-9_-]/g, '');
+  }
+
+  // 识别用户是否在请求调取标准模板（Dify 未返回标记时客户端兜底）
+  function isTemplateQuery(query) {
+    const q = String(query || '').trim();
+    if (!q) return false;
+    if (/房屋租赁/.test(q) && /模板/.test(q)) return true;
+    if (/标准合同/.test(q)) return true;
+    if (/模板/.test(q) && /(调取|获取|下载|要|给|发|看|使用|提供|一份|标准)/.test(q)) return true;
+    return false;
+  }
+
+  function resolveTemplateIdFromQuery(query) {
+    if (/劳动/.test(query || '')) return '';
+    if (/租赁|房屋|租房/.test(query || '')) return 'housing_lease';
+    return 'housing_lease';
+  }
+
+  function emitStreamDone(detail) {
+    window.dispatchEvent(new CustomEvent('qihe:stream', { detail }));
   }
 
   function liveDisplay(raw) {
@@ -360,7 +388,7 @@
     const contract = markerRaw.match(CONTRACT_RE);
     let tpl = markerRaw.match(TEMPLATE_RE);
     let templateId = tpl ? normalizeTemplateId(tpl[1]) : '';
-    if (!raw && /模板/.test(query || '')) templateId = 'housing_lease';
+    if (!raw && isTemplateQuery(query)) templateId = resolveTemplateIdFromQuery(query);
     const intro = markerRaw.replace(CONTRACT_RE, '').replace(TEMPLATE_RE_GLOBAL, '').trim();
     const finalText = intro || (contract ? '好的，已根据你的需求为你拟定合同，请查看全文。' : raw);
     window.dispatchEvent(
@@ -408,6 +436,24 @@
   async function sendChatMessage(query, retryCount = 0, bypassBusy = false) {
     if (!query || (state.busy && !bypassBusy)) return;
     if (!bypassBusy) state.busy = true;
+
+    // 模板调取：优先本地处理，不依赖 Dify 返回标记（手机离线/封装环境更稳）
+    if (isTemplateQuery(query)) {
+      const templateId = resolveTemplateIdFromQuery(query);
+      const intro = '为你调取标准合同模板：';
+      emitStreamDone({
+        text: intro,
+        raw: `${intro}\n\n<<<TEMPLATE:${templateId}>>>`,
+        done: true,
+        contract: null,
+        template: templateId,
+      });
+      state.messages.push({ role: 'ai', content: `<<<TEMPLATE:${templateId}>>>` });
+      persist();
+      if (!bypassBusy) state.busy = false;
+      return;
+    }
+
     let raw = '';
 
     try {
@@ -447,10 +493,14 @@
       var tpl = markerRaw.match(TEMPLATE_RE);
       var templateId = tpl ? normalizeTemplateId(tpl[1]) : '';
 
+      // Dify 无输出或漏标时，按用户意图本地识别模板请求
+      if (!templateId && isTemplateQuery(query)) {
+        templateId = resolveTemplateIdFromQuery(query);
+      }
       // 代码执行节点缩进报错兜底：Dify 无输出但用户在请求模板
-      if (!raw && /模板/.test(query)) {
-        tpl = ['<<<TEMPLATE:housing_lease>>>', 'housing_lease'];
-        templateId = 'housing_lease';
+      if (!raw && isTemplateQuery(query)) {
+        tpl = ['<<<TEMPLATE:housing_lease>>>', templateId || 'housing_lease'];
+        templateId = templateId || 'housing_lease';
       }
       var intro = markerRaw
         .replace(CONTRACT_RE, '')
@@ -529,16 +579,15 @@
     },
     async getTemplate(id) {
       const normalizedId = normalizeTemplateId(id) || id;
+      // 内嵌模板兜底优先：封装进 WKWebView(file://) 后 fetch 常被拦截
+      if (EMBEDDED_TEMPLATES[normalizedId]) return EMBEDDED_TEMPLATES[normalizedId];
       const base = await ensureApiBase();
-      // 后端可用则走后端实时转换；否则回退随包静态模板 JSON（封装后/无后端也能加载）。
       if (base !== null) {
         try {
           const resp = await fetch(base + '/api/templates/' + encodeURIComponent(normalizedId));
           if (resp.ok) return await resp.json();
         } catch (_) {}
       }
-      // 内嵌模板兜底：封装进 WKWebView(file://) 后本地 fetch 可能被拦截，直接返回最稳。
-      if (EMBEDDED_TEMPLATES[normalizedId]) return EMBEDDED_TEMPLATES[normalizedId];
       try {
         const resp = await fetch('templates/' + encodeURIComponent(normalizedId) + '.json');
         if (resp.ok) return await resp.json();

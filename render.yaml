@@ -1,0 +1,18 @@
+# Render 一键部署后端（https://render.com）
+# 连接 GitHub 仓库后选择 Blueprint 部署，部署完成后把公网地址写入 app/api-client.js 的 PRODUCTION_API
+# 或在套壳 App 里注入 window.__QIHE_API_BASE__ = 'https://你的服务.onrender.com'
+services:
+  - type: web
+    name: qihe-server
+    runtime: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: DIFY_API_KEY
+        sync: false
+      - key: DIFY_BASE_URL
+        value: https://api.dify.ai/v1

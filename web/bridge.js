@@ -1,16 +1,211 @@
 (function(){'use strict';
-console.log('[qihe bridge] 版本 nav-fix-20260705ac 已加载（文件审查接入Dify+概括按钮流程+模板离线兜底）');
+console.log('[qihe bridge] 版本 nav-fix-20260705ah 已加载（左滑返回+模板调取+文件上传修复）');
 // 「查看风险详情」蓝色文字按钮样式
 var _s=document.createElement('style');
 _s.textContent='#__qihe_review_detail_btn{display:block!important;margin-top:10px!important;padding-top:9px!important;border-top:1px solid rgba(37,99,235,.14)!important;background:transparent!important;color:#2563eb!important;font-size:14px!important;font-weight:600!important;text-align:left!important;cursor:pointer!important;-webkit-user-select:none;user-select:none;line-height:1.4;white-space:nowrap}#__qihe_review_detail_btn::after{content:"\\203A";margin-left:5px;font-size:17px;line-height:1}#__qihe_review_detail_btn:active{opacity:.55}';
 document.head.appendChild(_s);
 var H=new WeakSet();
 
+// ===== 页面导航深度（配合 History API，修复 iOS 左滑直接退出 App）=====
+function navDepth(st){
+  if(!st)return 0;
+  if(st.review==='detail')return 3;
+  if(st.review==='upload'||st.reviewLoading)return 2;
+  if(st.chatOpen)return 1;
+  if(st.review)return 2;
+  return 0;
+}
+function qiheGoBack(I){
+  if(!I||!I.state)return false;
+  var st=I.state;
+  if(st.review==='detail'){I.backHome();return true;}
+  if(st.reviewLoading||st.review==='upload'||st.review){
+    I.setState({review:null,reviewLoading:false,chatOpen:false});
+    return true;
+  }
+  if(st.chatOpen){I.setState({chatOpen:false});return true;}
+  return false;
+}
+function syncNavHistory(prevSt,nextSt,self){
+  var pd=navDepth(prevSt),nd=navDepth(nextSt);
+  if(nd>pd)history.pushState({qihe:nd},'',location.href);
+  else if(nd<pd&&!self.__qihePopHandling){
+    self.__qihePopHandling=true;
+    try{history.back();}catch(_){}
+    setTimeout(function(){self.__qihePopHandling=false;},0);
+  }
+}
+function initNavHistory(){
+  if(window.__qiheNavInit)return;
+  window.__qiheNavInit=true;
+  history.replaceState({qihe:0},'',location.href);
+  window.addEventListener('popstate',function(){
+    var I=window._qiheActiveInstance;
+    if(!I)return;
+    I.__qihePopHandling=true;
+    qiheGoBack(I);
+    setTimeout(function(){I.__qihePopHandling=false;},0);
+  });
+}
+initNavHistory();
+
+function htmlToPlainText(html){
+  var d=document.createElement('div');
+  d.innerHTML=String(html||'');
+  return (d.textContent||d.innerText||'').replace(/\r\n/g,'\n').trim();
+}
+function countArticlesPlain(text){
+  var m=String(text||'').match(/第[一二三四五六七八九十百千零两0-9]+条/g);
+  if(!m)return 0;
+  var s={};for(var i=0;i<m.length;i++)s[m[i]]=1;
+  return Object.keys(s).length;
+}
+function applyTemplateToInstance(I,dt,templateId){
+  var html=dt.previewHtml||'';
+  var plain=htmlToPlainText(html)||html;
+  I._isTemplateDoc=true;
+  I._currentTemplateId=templateId;
+  I._currentContractName=dt.name||templateId;
+  I._currentContractContent=plain;
+  I.contractText=plain;
+  I.contractArticles=countArticlesPlain(plain)||6;
+}
+
 // 捕获用户选择的真实文件对象（应用原生只保留文件名，无法读取内容）。
-// 用捕获阶段监听所有 file input 的 change，把最近一次选择的文件存起来供审查使用。
 window.__qiheLastFile=null;
+
+// ===== 文件上传（修复 iOS WKWebView 点 + 号不弹窗）=====
+// iOS 上 display:none 的 input 无法被 .click() 唤起；且 dc-runtime 的 ref 可能未就绪。
+var _filePickLock=0;
+var _fallbackFileInput=null;
+function fixOneFileInput(input){
+  if(!input||input.type!=='file')return;
+  input.style.setProperty('position','fixed','important');
+  input.style.setProperty('top','0','important');
+  input.style.setProperty('left','0','important');
+  input.style.setProperty('width','1px','important');
+  input.style.setProperty('height','1px','important');
+  input.style.setProperty('opacity','0.01','important');
+  input.style.setProperty('z-index','2147483646','important');
+  input.style.setProperty('display','block','important');
+  input.style.setProperty('pointer-events','none','important');
+  input.setAttribute('data-qihe-file','1');
+}
+function fixFileInputs(){
+  try{
+    var inputs=document.querySelectorAll('input[type=file]');
+    for(var i=0;i<inputs.length;i++)fixOneFileInput(inputs[i]);
+  }catch(_){}
+}
+function getFallbackFileInput(multiple){
+  if(!_fallbackFileInput){
+    _fallbackFileInput=document.createElement('input');
+    _fallbackFileInput.id='__qihe_file_fallback';
+    _fallbackFileInput.type='file';
+    _fallbackFileInput.accept='.pdf,.doc,.docx,image/*';
+    _fallbackFileInput.style.cssText='position:fixed;top:0;left:0;width:1px;height:1px;opacity:0.01;z-index:2147483647;display:block;';
+    document.documentElement.appendChild(_fallbackFileInput);
+  }
+  _fallbackFileInput.multiple=!!multiple;
+  return _fallbackFileInput;
+}
+function isPlusButton(el){
+  if(!el)return false;
+  var btn=el.closest?el.closest('button'):null;
+  if(!btn)return false;
+  var path=btn.querySelector('svg path');
+  if(!path)return false;
+  var d=path.getAttribute('d')||'';
+  return d.indexOf('M12 5v14')>=0&&d.indexOf('M5 12h14')>=0;
+}
+function detectFileContext(btn){
+  var next=btn.nextElementSibling;
+  while(next){
+    if(next.tagName==='INPUT'&&next.type==='file')return{input:next,multiple:!!next.multiple};
+    next=next.nextElementSibling;
+  }
+  var parent=btn.parentElement;
+  if(parent){
+    var inp=parent.querySelector('input[type=file]');
+    if(inp)return{input:inp,multiple:!!inp.multiple};
+  }
+  return{input:null,multiple:false};
+}
+function handlePickedFiles(I,multiple,files){
+  if(!I||!files||!files.length)return;
+  window.__qiheLastFile=files[0];
+  if(multiple){
+    if(files.length>10){if(typeof I._showUploadToast==='function')I._showUploadToast();return;}
+    var names=[];for(var i=0;i<files.length;i++)names.push(files[i].name);
+    I.setState(function(s){return{attachedFiles:(s.attachedFiles||[]).concat(names).slice(0,10)};});
+    return;
+  }
+  var f=files[0];
+  if(I.state&&I.state.chatOpen){
+    I.setState(function(s){return{messages:(s.messages||[]).concat([{role:'user',text:'📎 已上传：'+f.name}])};});
+    if(typeof I._startReview==='function')I._startReview(f.name);
+  }else if(typeof I._startReview==='function'){
+    I._startReview(f.name);
+  }
+}
+function openFilePicker(multiple,onDone){
+  var input=getFallbackFileInput(multiple);
+  input.value='';
+  var done=false;
+  var finish=function(files){
+    if(done)return;done=true;
+    input.removeEventListener('change',onChange);
+    if(files&&files.length&&onDone)onDone(files);
+  };
+  var onChange=function(){
+    finish(input.files?[].slice.call(input.files):[]);
+    _filePickLock=0;
+  };
+  input.addEventListener('change',onChange);
+  try{input.click();}catch(_){finish([]);_filePickLock=0;}
+}
+function triggerFilePickFromButton(btn){
+  if(_filePickLock)return;
+  var I=window._qiheActiveInstance;
+  if(!I)return;
+  _filePickLock=1;
+  setTimeout(function(){_filePickLock=0;},3000);
+  var ctx=detectFileContext(btn);
+  var multiple=!!(ctx&&ctx.multiple);
+  if(ctx&&ctx.input){
+    fixOneFileInput(ctx.input);
+    ctx.input.value='';
+    var used=false;
+    var onNative=function(){
+      ctx.input.removeEventListener('change',onNative);
+      if(used)return;used=true;
+      var files=ctx.input.files?[].slice.call(ctx.input.files):[];
+      if(files.length){_filePickLock=0;handlePickedFiles(I,multiple,files);return;}
+      else openFilePicker(multiple,function(fs){handlePickedFiles(I,multiple,fs);});
+    };
+    ctx.input.addEventListener('change',onNative);
+    try{ctx.input.click();return;}catch(_){}
+  }
+  openFilePicker(multiple,function(files){handlePickedFiles(I,multiple,files);});
+}
+function onFilePlusGesture(e){
+  if(!isPlusButton(e.target))return;
+  var btn=e.target.closest?e.target.closest('button'):null;
+  if(!btn)return;
+  e.preventDefault();
+  e.stopPropagation();
+  if(typeof e.stopImmediatePropagation==='function')e.stopImmediatePropagation();
+  triggerFilePickFromButton(btn);
+}
+document.addEventListener('touchstart',onFilePlusGesture,{capture:true,passive:false});
+document.addEventListener('click',onFilePlusGesture,true);
 document.addEventListener('change',function(e){
-  try{var t=e.target;if(t&&t.tagName==='INPUT'&&t.type==='file'&&t.files&&t.files.length){window.__qiheLastFile=t.files[0];}}catch(_){}
+  try{
+    var t=e.target;
+    if(t&&t.tagName==='INPUT'&&t.type==='file'&&t.files&&t.files.length){
+      window.__qiheLastFile=t.files[0];
+    }
+  }catch(_){}
 },true);
 
 function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
@@ -197,7 +392,7 @@ function injectReviewBtn(){
 }
 function clearReviewBtn(){var I=window._qiheActiveInstance;if(I)I._reviewBtnPending=false;var b=document.getElementById('__qihe_review_detail_btn');if(b)b.remove();}
 
-var _mo=new MutationObserver(function(){var I=window._qiheActiveInstance;if(I&&I.state&&I.state.review==='detail')styleReviewLabels();else resetReviewLabelStyles();injectReviewBtn();applyMarkdownDom();hideDynamicIsland();});
+var _mo=new MutationObserver(function(){fixFileInputs();var I=window._qiheActiveInstance;if(I&&I.state&&I.state.review==='detail')styleReviewLabels();else resetReviewLabelStyles();injectReviewBtn();applyMarkdownDom();hideDynamicIsland();});
 // 仅监听节点增删，避免与样式/属性写入形成递归触发导致页面卡死。
 _mo.observe(document.documentElement,{childList:true,subtree:true});
 
@@ -206,7 +401,19 @@ var oSH=I._sendHome,oSC=I._sendChat,oEW=I._exportWord,oSR=I._startReview;
 // 新一轮发送前清掉上一轮的审查按钮
 I._sendHome=function(){var t=(this.state.text||'').trim();if(!t||(this.state.attachedFiles||[]).length)return oSH.call(this);if(!window.QiheAPI)return oSH.call(this);clearReviewBtn();this._push('user',t);this.setState({text:'',chatOpen:true,thinking:true});window.QiheAPI.send(t)};
 I._sendChat=function(){var t=(this.state.chatText||'').trim();if(!t)return;if(!window.QiheAPI)return oSC.call(this);clearReviewBtn();this._push('user',t);this.setState({chatText:'',thinking:true});window.QiheAPI.send(t)};
-I._exportWord=function(){if(window.QiheAPI&&this._currentContractContent){window.QiheAPI.downloadContract(this._currentContractContent,(this._currentContractName||'房屋租赁合同')+'.docx');this.setState({savedToast:true})}else oEW.call(this)};
+I._exportWord=function(){
+  if(window.QiheAPI&&this._isTemplateDoc&&this._currentTemplateId){
+    window.QiheAPI.downloadTemplate(this._currentTemplateId);
+    this.setState({savedToast:true});
+    return;
+  }
+  if(window.QiheAPI&&this._currentContractContent){
+    window.QiheAPI.downloadContract(this._currentContractContent,(this._currentContractName||'房屋租赁合同')+'.docx');
+    this.setState({savedToast:true});
+    return;
+  }
+  oEW.call(this);
+};
 I._startReview=function(name){
   if(!window.QiheAPI)return oSR.call(this,name);
   clearReviewBtn();
@@ -228,7 +435,7 @@ I._startReview=function(name){
     window.QiheAPI.send('请审查以下合同文件：'+(name||'合同文件'));
   }
 };
-// 返回导航：详情页 → 聊天页 → 首页（不再从聊天页误跳详情页）
+// 返回导航：详情页 → 聊天页 → 首页；上传/加载页 → 首页
 if(!I.__b){I.__b=true;var oB=I.backHome;I.backHome=function(){
   if(this.state.review==='detail'){
     var toChat=!!this.__reviewBackToChat;
@@ -236,6 +443,9 @@ if(!I.__b){I.__b=true;var oB=I.backHome;I.backHome=function(){
     resetReviewLabelStyles();
     this.setState({review:null,chatOpen:toChat});
     if(toChat){setTimeout(injectReviewBtn,80);setTimeout(injectReviewBtn,300);}
+  }
+  else if(this.state.reviewLoading||this.state.review==='upload'||this.state.review){
+    this.setState({review:null,reviewLoading:false,chatOpen:false});
   }
   else if(this.state.chatOpen){this.setState({chatOpen:false});}
   else if(oB)oB.call(this);
@@ -245,8 +455,8 @@ if(!I.__b){I.__b=true;var oB=I.backHome;I.backHome=function(){
 window.addEventListener('qihe:stream',function(e){
 var d=e.detail||{},I=window._qiheActiveInstance;if(!I||typeof I.setState!=='function')return;
 if(d.done){clearTimeout(I._qhL1);clearTimeout(I._qhL2);I.setState({thinking:false,reviewLoading:false});
- if(d.contract){I.contractText=d.contract.body;I.contractArticles=d.contract.articles;I._currentContractContent=d.contract.body;I._currentContractName=d.contract.name;I.setState(function(s){return{messages:s.messages.concat([{role:'ai',text:'已根据你的需求拟定《'+d.contract.name+'》，请查看全文。点击「导出合同」保存到本地：'},{role:'ai',type:'doc'}])}})}
- else if(d.template){if(window.QiheAPI)window.QiheAPI.getTemplate(d.template).then(function(dt){I.contractText=dt.previewHtml||'';I._currentContractName=dt.name||d.template;I.setState(function(s){return{messages:s.messages.concat([{role:'ai',text:'为你调取标准合同模板《'+(dt.name||d.template)+'》：'},{role:'ai',type:'doc'}])}})}).catch(function(){I._push('ai','模板加载失败')})}
+ if(d.contract){I._isTemplateDoc=false;I._currentTemplateId='';I.contractText=d.contract.body;I.contractArticles=d.contract.articles;I._currentContractContent=d.contract.body;I._currentContractName=d.contract.name;I.setState(function(s){return{messages:s.messages.concat([{role:'ai',text:'已根据你的需求拟定《'+d.contract.name+'》，请查看全文。点击「导出合同」保存到本地：'},{role:'ai',type:'doc'}])}})}
+ else if(d.template){if(window.QiheAPI)window.QiheAPI.getTemplate(d.template).then(function(dt){applyTemplateToInstance(I,dt,d.template);I.setState(function(s){return{messages:s.messages.concat([{role:'ai',text:'为你调取标准合同模板《'+(dt.name||d.template)+'》：'},{role:'ai',type:'doc'}])}})}).catch(function(err){console.error('[qihe bridge] 模板加载失败',err);I._push('ai','模板加载失败，请检查网络后重试')})}
  else if(isReview(d.raw||'')){var cs=parseReview(d.raw||'');if(cs.length>0){
    I.clauseData=cs;
    I.reviewDocs=I.reviewDocs||{};
@@ -271,7 +481,7 @@ if(d.done){clearTimeout(I._qhL1);clearTimeout(I._qhL2);I.setState({thinking:fals
 }else if(d.text&&String(d.text).trim()){I.setState({thinking:false});var ms=I.state.messages||[],li=ms.length-1;if(li>=0&&ms[li].role==='ai'&&!ms[li].type){ms[li]=Object.assign({},ms[li],{text:d.text})}else I._push('ai',d.text);setTimeout(applyMarkdownDom,40)}
 });
 window.addEventListener('qihe:error',function(e){var I=window._qiheActiveInstance;if(I){clearTimeout(I._qhL1);clearTimeout(I._qhL2);I.setState({thinking:false,busy:false,reviewLoading:false});I._push('ai','抱歉，出错了：'+(e.detail.message||'请稍后重试'))}});
-(function w(n){n=n||0;if(n>100)return;if(window.DCLogic&&window.DCLogic.prototype&&window.DCLogic.prototype.setState){var o=window.DCLogic.prototype.setState;window.DCLogic.prototype.setState=function(u){hook(this);
+(function w(n){n=n||0;if(n>100)return;if(window.DCLogic&&window.DCLogic.prototype&&window.DCLogic.prototype.setState){var o=window.DCLogic.prototype.setState;window.DCLogic.prototype.setState=function(u){var prevSt=this.state;hook(this);
   // 记录进入详情页前是否在聊天页：聊天入口进详情应回聊天；最近记录进详情应回首页。
   if(u&&typeof u==='object'&&u.review==='detail'){
     // 非用户主动点击时，拦截“自动跳详情”并留在聊天页，保持先看概括+按钮的流程。
@@ -293,6 +503,9 @@ window.addEventListener('qihe:error',function(e){var I=window._qiheActiveInstanc
     console.log('[qihe bridge] 捕获详情页返回，目标=',toChat?'聊天页':'首页',u);
     return o.call(this,u);
   }
-  var r=o.apply(this,arguments);setTimeout(applyMarkdownDom,20);setTimeout(hideDynamicIsland,20);return r};return}setTimeout(function(){w(n+1)},150)})();
+  var r=o.apply(this,arguments);
+  try{syncNavHistory(prevSt,this.state,this);}catch(_){}
+  setTimeout(applyMarkdownDom,20);setTimeout(hideDynamicIsland,20);return r};return}setTimeout(function(){w(n+1)},150)})();
 setTimeout(hideDynamicIsland,50);setTimeout(hideDynamicIsland,300);setTimeout(hideDynamicIsland,1000);
+setTimeout(fixFileInputs,80);setTimeout(fixFileInputs,500);setTimeout(fixFileInputs,1500);
 })();
