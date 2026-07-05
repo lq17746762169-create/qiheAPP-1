@@ -57,3 +57,13 @@ jobs:
         with:
           name: qihe-release-apk
           path: mobile/android/app/build/outputs/apk/release/*.apk
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk-v${{ github.run_number }}
+          name: 契合 Release APK v${{ github.run_number }}
+          files: mobile/android/app/build/outputs/apk/release/*.apk
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
