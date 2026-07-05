@@ -13,8 +13,10 @@
   'use strict';
 
   // ===== 配置 =====
-  const REMOTE_API = 'http://localhost:3000';
-  const API_BASE = location.protocol === 'file:' ? REMOTE_API : '';
+  const REMOTE_API = 'http://localhost:3002';
+  // 页面由后端自身(同源)提供时走相对路径；否则(file:// 或 Live Preview 等其它端口)
+  // 一律指向后端绝对地址,避免请求打到静态服务器导致「请求失败」。
+  const API_BASE = location.origin === REMOTE_API ? '' : REMOTE_API;
 
   const LS = {
     user: 'qihe_user_id',
@@ -125,14 +127,23 @@
   }
 
   // ===== 标记检测 =====
-  const CONTRACT_RE = /<<<CONTRACT_START>>>([\s\S]*?)<<<CONTRACT_END>>>/;
-  const TEMPLATE_RE = /<<<TEMPLATE:([a-zA-Z0-9_-]+)>>>/;
+  const CONTRACT_RE = /<<<\s*CONTRACT_START\s*>>>([\s\S]*?)<<<\s*CONTRACT_END\s*>>>/i;
+  const TEMPLATE_RE = /<<<\s*TEMPLATE\s*:\s*([a-zA-Z0-9_-]+)\s*>>>/i;
+  const TEMPLATE_RE_GLOBAL = /<<<\s*TEMPLATE\s*:\s*([a-zA-Z0-9_-]+)\s*>>>/gi;
+
+  function normalizeMarkers(text) {
+    return String(text || '')
+      .replace(/&lt;&lt;&lt;\s*CONTRACT_START\s*&gt;&gt;&gt;/gi, '<<<CONTRACT_START>>>')
+      .replace(/&lt;&lt;&lt;\s*CONTRACT_END\s*&gt;&gt;&gt;/gi, '<<<CONTRACT_END>>>')
+      .replace(/&lt;&lt;&lt;\s*TEMPLATE\s*:\s*([a-zA-Z0-9_-]+)\s*&gt;&gt;&gt;/gi, '<<<TEMPLATE:$1>>>');
+  }
 
   function liveDisplay(raw) {
-    let t = raw.replace(/<<<TEMPLATE:[a-zA-Z0-9_-]+>>>/g, '');
-    const startIdx = t.indexOf('<<<CONTRACT_START>>>');
+    const normalized = normalizeMarkers(raw);
+    let t = normalized.replace(TEMPLATE_RE_GLOBAL, '');
+    const startIdx = t.search(/<<<\s*CONTRACT_START\s*>>>/i);
     if (startIdx !== -1) t = t.slice(0, startIdx);
-    t = t.replace(/<<<[A-Z_:a-z0-9-]*$/, '').replace(/<+$/, '');
+    t = t.replace(/<<<\s*[A-Z_:a-z0-9-]*\s*$/, '').replace(/<+$/, '');
     return t;
   }
 
@@ -189,10 +200,12 @@
     }
   }
 
+  const DIFY_TEMP_FAILURE_RE = /系统暂时无法处理您的请求|请稍后重试或重新描述您的问题/;
+
   // ===== SSE 流式对话 =====
-  async function sendChatMessage(query) {
-    if (!query || state.busy) return;
-    state.busy = true;
+  async function sendChatMessage(query, retryCount = 0, bypassBusy = false) {
+    if (!query || (state.busy && !bypassBusy)) return;
+    if (!bypassBusy) state.busy = true;
     let raw = '';
 
     try {
@@ -244,22 +257,31 @@
       }
 
       // 流式完成
-      var contract = raw.match(CONTRACT_RE);
-      var tpl = raw.match(TEMPLATE_RE);
+      var markerRaw = normalizeMarkers(raw);
+      var contract = markerRaw.match(CONTRACT_RE);
+      var tpl = markerRaw.match(TEMPLATE_RE);
 
       // 代码执行节点缩进报错兜底：Dify 无输出但用户在请求模板
       if (!raw && /模板/.test(query)) {
         tpl = ['<<<TEMPLATE:housing_lease>>>', 'housing_lease'];
       }
-      var intro = raw
+      var intro = markerRaw
         .replace(CONTRACT_RE, '')
-        .replace(/<<<TEMPLATE:[a-zA-Z0-9_-]+>>>/g, '')
+        .replace(TEMPLATE_RE_GLOBAL, '')
         .trim();
+
+      const finalText = intro || (contract ? '好的，已根据你的需求为你拟定合同，请查看全文。' : raw);
+      // Dify 工作流偶发落入兜底失败文案时，自动重试一次并重置会话，避免用户被卡死在错误分支。
+      if (DIFY_TEMP_FAILURE_RE.test(finalText) && retryCount < 1) {
+        state.conversationId = '';
+        persist();
+        return sendChatMessage(query, retryCount + 1, true);
+      }
 
       window.dispatchEvent(
         new CustomEvent('qihe:stream', {
           detail: {
-            text: intro || (contract ? '好的，已根据你的需求为你拟定合同，请查看全文。' : raw),
+            text: finalText,
             raw,
             done: true,
             contract: contract
@@ -281,7 +303,7 @@
       state.messages.push({ role: 'ai', content: 'error: ' + (err.message || '') });
       persist();
     } finally {
-      state.busy = false;
+      if (!bypassBusy) state.busy = false;
     }
   }
 

@@ -1,9 +1,64 @@
 (function(){'use strict';
+console.log('[qihe bridge] 版本 nav-fix-20260705f 已加载（分流返回+Markdown+去灵动岛）');
 // 「查看风险详情」蓝色文字按钮样式
 var _s=document.createElement('style');
 _s.textContent='#__qihe_review_detail_btn{display:block!important;margin-top:10px!important;padding-top:9px!important;border-top:1px solid rgba(37,99,235,.14)!important;background:transparent!important;color:#2563eb!important;font-size:14px!important;font-weight:600!important;text-align:left!important;cursor:pointer!important;-webkit-user-select:none;user-select:none;line-height:1.4;white-space:nowrap}#__qihe_review_detail_btn::after{content:"\\203A";margin-left:5px;font-size:17px;line-height:1}#__qihe_review_detail_btn:active{opacity:.55}';
 document.head.appendChild(_s);
 var H=new WeakSet();
+
+function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function sanitizeHtmlBasic(html){
+  var h=String(html||'');
+  h=h.replace(/<\s*(script|style|iframe|object|embed)[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi,'');
+  h=h.replace(/\son[a-z]+\s*=\s*"[^"]*"/gi,'').replace(/\son[a-z]+\s*=\s*'[^']*'/gi,'');
+  h=h.replace(/\shref\s*=\s*(['"])\s*javascript:[\s\S]*?\1/gi,'');
+  return h;
+}
+function looksLikeHtmlBlock(t){
+  var s=String(t||'').trim();
+  if(!s||s.charAt(0)!=='<'||s.indexOf('>')<0)return false;
+  return /<\s*(p|div|span|strong|em|ul|ol|li|br|h[1-6]|blockquote|code|pre)\b/i.test(s) && /<\s*\/\s*(p|div|span|strong|em|ul|ol|li|h[1-6]|blockquote|code|pre)\s*>/i.test(s);
+}
+function mdToHtml(t){
+  var src=String(t||'').replace(/\r\n/g,'\n');
+  var blocks=[],codes=[];
+  src=src.replace(/```[\w-]*\n?([\s\S]*?)```/g,function(_,code){blocks.push('<pre style="margin:8px 0;padding:10px;background:#f3f4f6;border-radius:8px;white-space:pre-wrap;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.45">'+escHtml((code||'').trim())+'</pre>');return '\u0001B'+(blocks.length-1)+'\u0001';});
+  src=src.replace(/`([^`]+)`/g,function(_,code){codes.push('<code style="padding:0 4px;background:#f3f4f6;border-radius:4px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace">'+escHtml(code)+'</code>');return '\u0001C'+(codes.length-1)+'\u0001';});
+  var h=escHtml(src);
+  h=h.replace(/^#{1,6}\s+(.+)$/gm,'<strong>$1</strong>');
+  h=h.replace(/\*\*([\s\S]*?)\*\*/g,function(_,m){return '<strong>'+m.replace(/\n/g,'<br>')+'</strong>'});
+  h=h.replace(/\u0001B(\d+)\u0001/g,function(_,i){return blocks[+i]||''});
+  h=h.replace(/\u0001C(\d+)\u0001/g,function(_,i){return codes[+i]||''});
+  return h.replace(/\n/g,'<br>');
+}
+function applyMarkdownDom(){try{
+  var all=document.querySelectorAll('*');
+  for(var i=0;i<all.length;i++){
+    var el=all[i];
+    if(el.children.length)continue;
+    if(el.id==='__qihe_review_detail_btn')continue;
+    var txt=el.textContent||'';
+    var hasMd=/(\*\*[\s\S]*?\*\*|`[^`]+`|```|^#{1,6}\s+)/m.test(txt);
+    var hasHtml=looksLikeHtmlBlock(txt);
+    var key=txt;
+    if(!hasMd&&!hasHtml)continue;
+    if(el.dataset&&el.dataset.qiheMdSrc===key)continue; // 内容未变就不重复渲染
+    if(hasHtml)el.innerHTML=sanitizeHtmlBasic(txt);
+    else el.innerHTML=mdToHtml(txt);
+    if(el.dataset){el.dataset.qiheMd='1';el.dataset.qiheMdSrc=key;}
+  }
+}catch(_){}}
+function hideDynamicIsland(){try{
+  var all=document.querySelectorAll('div');
+  for(var i=0;i<all.length;i++){
+    var el=all[i];if(!el||!el.offsetParent)continue;
+    var r=el.getBoundingClientRect();if(r.top>70||r.width<90||r.width>190||r.height<20||r.height>56)continue;
+    var cs=getComputedStyle(el),bg=cs.backgroundColor||'',br=parseFloat(cs.borderTopLeftRadius||'0');
+    if((bg==='rgb(0, 0, 0)'||bg==='rgba(0, 0, 0, 1)')&&br>=12){
+      el.style.setProperty('display','none','important');
+    }
+  }
+}catch(_){}}
 
 // ===== 解析 Dify 审查报告（三段式：标签+标题 → 条款原文 → 风险描述）=====
 function parseReview(raw){var r=[],bs=raw.split(/\n###\s*\[/);for(var i=1;i<bs.length;i++){var b='['+bs[i],m=b.match(/^\[(高风险|中风险|低风险)\]\s*(.+)/);if(!m)continue;var lv={'高风险':'high','中风险':'mid','低风险':'low'},hd=(m[2]||'').trim(),bm=b.match(/>\s*条款原文[：:]\s*([\s\S]*?)(?=\n\s*风险描述|\n###|$)/),body=bm?bm[1].trim():'',dm=b.match(/风险描述[：:]\s*([\s\S]*?)(?=\n---|\n###\s*\[|\n\*\*律师|$)/),desc=dm?dm[1].trim():'';r.push({heading:hd,body:body,level:lv[m[1]]||'high',riskText:desc});}return r}
@@ -49,8 +104,10 @@ function styleReviewLabels(){try{
 
 // ===== 打开现有的审查风险详情页 =====
 function openReviewDetail(){var I=window._qiheActiveInstance;if(!I||typeof I.setState!=='function')return;
+  I.__reviewBackToChat=!!(I.state&&I.state.chatOpen); // 聊天入口进详情：返回应回聊天
   I.setState({review:'detail',activeDoc:'review',reviewTab:'text',chatOpen:false});
-  setTimeout(styleReviewLabels,60);setTimeout(styleReviewLabels,300);setTimeout(styleReviewLabels,700);}
+  setTimeout(styleReviewLabels,60);setTimeout(styleReviewLabels,300);setTimeout(styleReviewLabels,700);
+  setTimeout(applyMarkdownDom,80);setTimeout(applyMarkdownDom,300);}
 window.__qiheOpenReview=openReviewDetail;
 
 // ===== 在「整体风险概括」气泡内底部注入蓝色「查看合同风险」按钮 =====
@@ -80,7 +137,7 @@ function injectReviewBtn(){
 }
 function clearReviewBtn(){var I=window._qiheActiveInstance;if(I)I._reviewBtnPending=false;var b=document.getElementById('__qihe_review_detail_btn');if(b)b.remove();}
 
-var _mo=new MutationObserver(function(){var I=window._qiheActiveInstance;if(I&&I.state&&I.state.review==='detail')styleReviewLabels();injectReviewBtn();});
+var _mo=new MutationObserver(function(){var I=window._qiheActiveInstance;if(I&&I.state&&I.state.review==='detail')styleReviewLabels();injectReviewBtn();applyMarkdownDom();hideDynamicIsland();});
 _mo.observe(document.documentElement,{childList:true,subtree:true,attributes:true});
 
 function hook(I){if(H.has(I))return;H.add(I);window._qiheActiveInstance=I;
@@ -92,7 +149,12 @@ I._exportWord=function(){if(window.QiheAPI&&this._currentContractContent){window
 I._startReview=function(name){if(!window.QiheAPI)return oSR.call(this,name);clearReviewBtn();this.setState({reviewLoading:true,loadingStep:'正在解析文件结构…'});window.QiheAPI.send('请审查以下文件：'+(name||'合同文件'))};
 // 返回导航：详情页 → 聊天页 → 首页（不再从聊天页误跳详情页）
 if(!I.__b){I.__b=true;var oB=I.backHome;I.backHome=function(){
-  if(this.state.review==='detail'){this.setState({review:null,chatOpen:true});setTimeout(injectReviewBtn,80);setTimeout(injectReviewBtn,300);}
+  if(this.state.review==='detail'){
+    var toChat=!!this.__reviewBackToChat;
+    this.__reviewBackToChat=false;
+    this.setState({review:null,chatOpen:toChat});
+    if(toChat){setTimeout(injectReviewBtn,80);setTimeout(injectReviewBtn,300);}
+  }
   else if(this.state.chatOpen){this.setState({chatOpen:false});}
   else if(oB)oB.call(this);
 }}
@@ -107,17 +169,34 @@ if(d.done){I.setState({thinking:false});
    I.clauseData=cs;
    I.reviewDocs=I.reviewDocs||{};
    I.reviewDocs.review={title:'审查报告',risks:cs.map(function(c){return{clauseRef:c.heading,body:c.body,riskText:c.riskText,level:c.level}})};
-   var summary=(extractSummary(d.raw||'')||(d.text||'').trim()).replace(/\*\*(.+?)\*\*/g,'$1').replace(/^#{1,6}\s*/gm,'');
+   var summary=(extractSummary(d.raw||'')||(d.text||'').trim());
    I._reviewSummary=summary;I._reviewBtnPending=true;
    // 聊天页最后一条 AI 消息只保留「整体风险概括」这一段
    var ms=(I.state.messages||[]).slice();for(var i=ms.length-1;i>=0;i--){if(ms[i].role==='ai'&&!ms[i].type){ms[i]=Object.assign({},ms[i],{text:summary});break}}
    // 停留在聊天页展示概括，不自动跳详情页；由用户点「查看风险详情」进入
    I.setState({reviewLoading:false,thinking:false,review:null,chatOpen:true,messages:ms});
    setTimeout(injectReviewBtn,120);setTimeout(injectReviewBtn,500);setTimeout(injectReviewBtn,1200);
+   setTimeout(applyMarkdownDom,100);setTimeout(applyMarkdownDom,400);
  }else{I.setState({reviewLoading:false,thinking:false});if(d.text)I._push('ai',d.text)}}
- else if(d.text){I._push('ai',d.text)}
-}else{I.setState({thinking:false});var ms=I.state.messages||[],li=ms.length-1;if(li>=0&&ms[li].role==='ai'&&!ms[li].type){ms[li]=Object.assign({},ms[li],{text:d.text})}else I._push('ai',d.text)}
+ else if(d.text){
+  var msd=I.state.messages||[],lid=msd.length-1;
+  if(lid>=0&&msd[lid].role==='ai'&&!msd[lid].type){msd=msd.slice();msd[lid]=Object.assign({},msd[lid],{text:d.text});I.setState({messages:msd});}
+  else I._push('ai',d.text);
+ }
+}else{I.setState({thinking:false});var ms=I.state.messages||[],li=ms.length-1;if(li>=0&&ms[li].role==='ai'&&!ms[li].type){ms[li]=Object.assign({},ms[li],{text:d.text})}else I._push('ai',d.text);setTimeout(applyMarkdownDom,40)}
 });
 window.addEventListener('qihe:error',function(e){var I=window._qiheActiveInstance;if(I){I.setState({thinking:false,busy:false});I._push('ai','抱歉，出错了：'+(e.detail.message||'请稍后重试'))}});
-(function w(n){n=n||0;if(n>100)return;if(window.DCLogic&&window.DCLogic.prototype&&window.DCLogic.prototype.setState){var o=window.DCLogic.prototype.setState;window.DCLogic.prototype.setState=function(){hook(this);return o.apply(this,arguments)};return}setTimeout(function(){w(n+1)},150)})();
+(function w(n){n=n||0;if(n>100)return;if(window.DCLogic&&window.DCLogic.prototype&&window.DCLogic.prototype.setState){var o=window.DCLogic.prototype.setState;window.DCLogic.prototype.setState=function(u){hook(this);
+  // 记录进入详情页前是否在聊天页：聊天入口进详情应回聊天；最近记录进详情应回首页。
+  if(u&&typeof u==='object'&&u.review==='detail'){this.__reviewBackToChat=!!(this.state&&this.state.chatOpen)}
+  if(u&&typeof u==='object'&&u.review===null&&this.state&&this.state.review==='detail'){
+    var toChat=!!this.__reviewBackToChat;
+    this.__reviewBackToChat=false;
+    u=Object.assign({},u,{chatOpen:toChat});
+    if(toChat){setTimeout(injectReviewBtn,80);setTimeout(injectReviewBtn,300);setTimeout(injectReviewBtn,700);}
+    console.log('[qihe bridge] 捕获详情页返回，目标=',toChat?'聊天页':'首页',u);
+    return o.call(this,u);
+  }
+  var r=o.apply(this,arguments);setTimeout(applyMarkdownDom,20);setTimeout(hideDynamicIsland,20);return r};return}setTimeout(function(){w(n+1)},150)})();
+setTimeout(hideDynamicIsland,50);setTimeout(hideDynamicIsland,300);setTimeout(hideDynamicIsland,1000);
 })();
