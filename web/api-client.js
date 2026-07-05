@@ -13,7 +13,7 @@
   'use strict';
 
   // ===== 配置 =====
-  const REMOTE_API = 'http://localhost:3002';
+  const REMOTE_API = 'http://localhost:3000';
   // 页面由后端自身(同源)提供时走相对路径；否则(file:// 或 Live Preview 等其它端口)
   // 一律指向后端绝对地址,避免请求打到静态服务器导致「请求失败」。
   const API_BASE = location.origin === REMOTE_API ? '' : REMOTE_API;

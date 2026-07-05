@@ -1,5 +1,5 @@
 (function(){'use strict';
-console.log('[qihe bridge] 版本 nav-fix-20260705f 已加载（分流返回+Markdown+去灵动岛）');
+console.log('[qihe bridge] 版本 nav-fix-20260705k 已加载（分流返回+Markdown+去灵动岛）');
 // 「查看风险详情」蓝色文字按钮样式
 var _s=document.createElement('style');
 _s.textContent='#__qihe_review_detail_btn{display:block!important;margin-top:10px!important;padding-top:9px!important;border-top:1px solid rgba(37,99,235,.14)!important;background:transparent!important;color:#2563eb!important;font-size:14px!important;font-weight:600!important;text-align:left!important;cursor:pointer!important;-webkit-user-select:none;user-select:none;line-height:1.4;white-space:nowrap}#__qihe_review_detail_btn::after{content:"\\203A";margin-left:5px;font-size:17px;line-height:1}#__qihe_review_detail_btn:active{opacity:.55}';
@@ -82,6 +82,12 @@ var RISK_STYLE={
   high:{t:'高风险',c:'#dc2626',bg:'#fef2f2'},
   low:{t:'低风险',c:'#eab308',bg:'#fefce8'},
 };
+function resetReviewLabelStyles(){try{
+  var ts=document.querySelectorAll('[data-qihe-risk-text]'),bs=document.querySelectorAll('[data-qihe-risk-box]'),cs=document.querySelectorAll('[data-qihe-risk-card]');
+  for(var i=0;i<ts.length;i++){var t=ts[i];t.style.removeProperty('color');t.removeAttribute('data-qihe-risk-text');}
+  for(var j=0;j<bs.length;j++){var b=bs[j];b.style.removeProperty('background-color');b.removeAttribute('data-qihe-risk-box');}
+  for(var k=0;k<cs.length;k++){var c=cs[k];c.style.removeProperty('border-left-color');c.style.removeProperty('background');c.removeAttribute('data-qihe-risk-card');}
+}catch(_){}}
 function styleReviewLabels(){try{
   var I=window._qiheActiveInstance;
   if(!I||!I.state||I.state.review!=='detail')return;
@@ -94,11 +100,12 @@ function styleReviewLabels(){try{
     var s=RISK_STYLE[levels[j]]||RISK_STYLE.high,el=labels[j];
     if(el.textContent.trim()!==s.t)el.textContent=s.t;
     el.style.setProperty('color','#fff','important');
+    el.setAttribute('data-qihe-risk-text','1');
     // 标签胶囊背景：最近的带背景色祖先（含自身）
     var box=el,hop=0;while(box&&hop<4){var b=getComputedStyle(box).backgroundColor;if(b&&b!=='rgba(0, 0, 0, 0)')break;box=box.parentElement;hop++;}
-    if(box)box.style.setProperty('background-color',s.c,'important');
+    if(box){box.style.setProperty('background-color',s.c,'important');box.setAttribute('data-qihe-risk-box','1');}
     // 风险卡片左边框 + 浅色底
-    var card=el,h2=0;while(card&&h2<6){var st=(card.getAttribute&&card.getAttribute('style'))||'';if(/border-left/.test(st)){card.style.setProperty('border-left-color',s.c,'important');card.style.setProperty('background',s.bg,'important');break;}card=card.parentElement;h2++;}
+    var card=el,h2=0;while(card&&h2<6){var st=(card.getAttribute&&card.getAttribute('style'))||'';if(/border-left/.test(st)){card.style.setProperty('border-left-color',s.c,'important');card.style.setProperty('background',s.bg,'important');card.setAttribute('data-qihe-risk-card','1');break;}card=card.parentElement;h2++;}
   }
 }catch(_){}}
 
@@ -137,7 +144,7 @@ function injectReviewBtn(){
 }
 function clearReviewBtn(){var I=window._qiheActiveInstance;if(I)I._reviewBtnPending=false;var b=document.getElementById('__qihe_review_detail_btn');if(b)b.remove();}
 
-var _mo=new MutationObserver(function(){var I=window._qiheActiveInstance;if(I&&I.state&&I.state.review==='detail')styleReviewLabels();injectReviewBtn();applyMarkdownDom();hideDynamicIsland();});
+var _mo=new MutationObserver(function(){var I=window._qiheActiveInstance;if(I&&I.state&&I.state.review==='detail')styleReviewLabels();else resetReviewLabelStyles();injectReviewBtn();applyMarkdownDom();hideDynamicIsland();});
 _mo.observe(document.documentElement,{childList:true,subtree:true,attributes:true});
 
 function hook(I){if(H.has(I))return;H.add(I);window._qiheActiveInstance=I;
@@ -146,12 +153,20 @@ var oSH=I._sendHome,oSC=I._sendChat,oEW=I._exportWord,oSR=I._startReview;
 I._sendHome=function(){var t=(this.state.text||'').trim();if(!t||(this.state.attachedFiles||[]).length)return oSH.call(this);if(!window.QiheAPI)return oSH.call(this);clearReviewBtn();this._push('user',t);this.setState({text:'',chatOpen:true,thinking:true});window.QiheAPI.send(t)};
 I._sendChat=function(){var t=(this.state.chatText||'').trim();if(!t)return;if(!window.QiheAPI)return oSC.call(this);clearReviewBtn();this._push('user',t);this.setState({chatText:'',thinking:true});window.QiheAPI.send(t)};
 I._exportWord=function(){if(window.QiheAPI&&this._currentContractContent){window.QiheAPI.downloadContract(this._currentContractContent,(this._currentContractName||'房屋租赁合同')+'.docx');this.setState({savedToast:true})}else oEW.call(this)};
-I._startReview=function(name){if(!window.QiheAPI)return oSR.call(this,name);clearReviewBtn();this.setState({reviewLoading:true,loadingStep:'正在解析文件结构…'});window.QiheAPI.send('请审查以下文件：'+(name||'合同文件'))};
+I._startReview=function(name){
+  if(!window.QiheAPI)return oSR.call(this,name);
+  clearReviewBtn();
+  // 审查统一走应用原生流程（含文件上传解析链路），避免自定义提示词干扰 Dify 工作流判断。
+  // 仅在进入审查前清理会话，降低上一轮上下文串扰概率。
+  if(typeof window.QiheAPI.clearHistory==='function')window.QiheAPI.clearHistory();
+  return oSR.call(this,name);
+};
 // 返回导航：详情页 → 聊天页 → 首页（不再从聊天页误跳详情页）
 if(!I.__b){I.__b=true;var oB=I.backHome;I.backHome=function(){
   if(this.state.review==='detail'){
     var toChat=!!this.__reviewBackToChat;
     this.__reviewBackToChat=false;
+    resetReviewLabelStyles();
     this.setState({review:null,chatOpen:toChat});
     if(toChat){setTimeout(injectReviewBtn,80);setTimeout(injectReviewBtn,300);}
   }
@@ -162,7 +177,7 @@ if(!I.__b){I.__b=true;var oB=I.backHome;I.backHome=function(){
 
 window.addEventListener('qihe:stream',function(e){
 var d=e.detail||{},I=window._qiheActiveInstance;if(!I||typeof I.setState!=='function')return;
-if(d.done){I.setState({thinking:false});
+if(d.done){I.setState({thinking:false,reviewLoading:false});
  if(d.contract){I.contractText=d.contract.body;I.contractArticles=d.contract.articles;I._currentContractContent=d.contract.body;I._currentContractName=d.contract.name;I.setState(function(s){return{messages:s.messages.concat([{role:'ai',text:'已根据你的需求拟定《'+d.contract.name+'》，请查看全文。点击「导出合同」保存到本地：'},{role:'ai',type:'doc'}])}})}
  else if(d.template){if(window.QiheAPI)window.QiheAPI.getTemplate(d.template).then(function(dt){I.contractText=dt.previewHtml||'';I._currentContractName=dt.name||d.template;I.setState(function(s){return{messages:s.messages.concat([{role:'ai',text:'为你调取标准合同模板《'+(dt.name||d.template)+'》：'},{role:'ai',type:'doc'}])}})}).catch(function(){I._push('ai','模板加载失败')})}
  else if(isReview(d.raw||'')){var cs=parseReview(d.raw||'');if(cs.length>0){
@@ -185,7 +200,7 @@ if(d.done){I.setState({thinking:false});
  }
 }else{I.setState({thinking:false});var ms=I.state.messages||[],li=ms.length-1;if(li>=0&&ms[li].role==='ai'&&!ms[li].type){ms[li]=Object.assign({},ms[li],{text:d.text})}else I._push('ai',d.text);setTimeout(applyMarkdownDom,40)}
 });
-window.addEventListener('qihe:error',function(e){var I=window._qiheActiveInstance;if(I){I.setState({thinking:false,busy:false});I._push('ai','抱歉，出错了：'+(e.detail.message||'请稍后重试'))}});
+window.addEventListener('qihe:error',function(e){var I=window._qiheActiveInstance;if(I){I.setState({thinking:false,busy:false,reviewLoading:false});I._push('ai','抱歉，出错了：'+(e.detail.message||'请稍后重试'))}});
 (function w(n){n=n||0;if(n>100)return;if(window.DCLogic&&window.DCLogic.prototype&&window.DCLogic.prototype.setState){var o=window.DCLogic.prototype.setState;window.DCLogic.prototype.setState=function(u){hook(this);
   // 记录进入详情页前是否在聊天页：聊天入口进详情应回聊天；最近记录进详情应回首页。
   if(u&&typeof u==='object'&&u.review==='detail'){this.__reviewBackToChat=!!(this.state&&this.state.chatOpen)}
