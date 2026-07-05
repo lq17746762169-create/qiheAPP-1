@@ -1,5 +1,10 @@
-# 依赖
-node_modules/
+# 构建产物
+dist/
+*.apk
+*.aab
+
+# Capacitor / Android（mobile/ 子目录另有 .gitignore）
+mobile/node_modules/
 
 # 环境变量与密钥（务必不要提交，本仓库为公开开源仓库）
 .env

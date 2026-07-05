@@ -1,0 +1,13 @@
+# Capacitor / Android
+mobile/node_modules/
+mobile/android/.gradle/
+mobile/android/build/
+mobile/android/app/build/
+mobile/android/local.properties
+mobile/android/qihe-release.jks
+mobile/android/.idea/
+
+# 构建产物
+dist/
+*.apk
+*.aab

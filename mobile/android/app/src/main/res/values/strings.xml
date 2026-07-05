@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">契合</string>
+    <string name="title_activity_main">契合</string>
+    <string name="package_name">com.qihe.contract</string>
+    <string name="custom_url_scheme">com.qihe.contract</string>
+</resources>

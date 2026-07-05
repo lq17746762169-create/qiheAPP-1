@@ -1,0 +1,11 @@
+{
+  "appId": "com.qihe.contract",
+  "appName": "契合",
+  "webDir": "../app",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}
