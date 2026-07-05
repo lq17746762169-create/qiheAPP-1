@@ -20,6 +20,16 @@
   // 默认优先同源（用于封装后端同端口托管）；若当前 3000 不是后端，会在运行时探活并自动回退。
   let API_BASE = location.protocol === 'file:' ? REMOTE_API : '';
   let _apiProbe = null;
+  // 内嵌标准模板数据（供离线/封装环境直接使用，无需请求后端或本地文件）
+  const EMBEDDED_TEMPLATES = { housing_lease: {"id":"housing_lease","name":"房屋租赁合同模板","description":"适用于住宅/商用房屋租赁场景的标准合同模板（当前为占位版本，待替换为正式定稿）","updatedAt":"2026-07-04","filename":"房屋租赁合同模板.docx","previewHtml":"<p><strong>房屋租赁合同</strong></p><p>（占位模板 · 待替换为正式定稿文件）</p><p>出租方（甲方）：____________________</p><p>承租方（乙方）：____________________</p><p>根据《中华人民共和国民法典》及相关法律法规，甲乙双方在平等、自愿、协商一致的基础上，就房屋租赁事宜达成如下协议：</p><p><strong>第一条 房屋基本情况</strong></p><p>甲方将坐落于 ____________________ 的房屋出租给乙方使用，建筑面积约 ______ 平方米，户型 __________。</p><p><strong>第二条 租赁期限</strong></p><p>租赁期自 ______ 年 __ 月 __ 日起至 ______ 年 __ 月 __ 日止。</p><p><strong>第三条 租金及支付方式</strong></p><p>月租金为人民币 ______ 元（大写：____________________），押金 ______ 元，支付方式为 __________。</p><p><strong>第四条 水电气及物业费</strong></p><p>租赁期间产生的水、电、燃气及物业等费用由 __________ 承担。</p><p><strong>第五条 双方权利与义务</strong></p><p>甲乙双方应按照本合同约定履行各自义务，保障对方合法权益。</p><p><strong>第六条 违约责任</strong></p><p>任何一方违反本合同约定，应向对方支付违约金并赔偿由此造成的损失。</p><p><strong>签署</strong></p><p>出租方（甲方）签字：__________          承租方（乙方）签字：__________</p><p>签订日期：____ 年 __ 月 __ 日            签订日期：____ 年 __ 月 __ 日</p>"} };
+
+
+  // 带超时的探活：封装到手机后本机不存在 localhost 后端，需快速失败并回退直连 Dify。
+  function fetchWithTimeout(url, ms) {
+    const c = new AbortController();
+    const t = setTimeout(() => c.abort(), ms);
+    return fetch(url, { method: 'GET', signal: c.signal }).finally(() => clearTimeout(t));
+  }
 
   async function ensureApiBase() {
     if (_apiProbe) return _apiProbe;
@@ -30,7 +40,7 @@
       if (FALLBACK_API !== REMOTE_API) candidates.push(FALLBACK_API);
       for (const base of candidates) {
         try {
-          const resp = await fetch(base + '/api/health', { method: 'GET' });
+          const resp = await fetchWithTimeout(base + '/api/health', 1500);
           if (!resp.ok) continue;
           let data = null;
           try {
@@ -527,6 +537,8 @@
           if (resp.ok) return await resp.json();
         } catch (_) {}
       }
+      // 内嵌模板兜底：封装进 WKWebView(file://) 后本地 fetch 可能被拦截，直接返回最稳。
+      if (EMBEDDED_TEMPLATES[normalizedId]) return EMBEDDED_TEMPLATES[normalizedId];
       try {
         const resp = await fetch('templates/' + encodeURIComponent(normalizedId) + '.json');
         if (resp.ok) return await resp.json();
