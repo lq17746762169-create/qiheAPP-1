@@ -14,9 +14,42 @@
 
   // ===== 配置 =====
   const REMOTE_API = 'http://localhost:3000';
-  // 页面由后端自身(同源)提供时走相对路径；否则(file:// 或 Live Preview 等其它端口)
-  // 一律指向后端绝对地址,避免请求打到静态服务器导致「请求失败」。
-  const API_BASE = location.origin === REMOTE_API ? '' : REMOTE_API;
+  const FALLBACK_API = 'http://localhost:3002';
+  const DIRECT_DIFY_BASE = 'https://api.dify.ai/v1';
+  const DIRECT_DIFY_API_KEY = 'app-PSvdjW5cksiz7CMjX0bfZdIJ';
+  // 默认优先同源（用于封装后端同端口托管）；若当前 3000 不是后端，会在运行时探活并自动回退。
+  let API_BASE = location.protocol === 'file:' ? REMOTE_API : '';
+  let _apiProbe = null;
+
+  async function ensureApiBase() {
+    if (_apiProbe) return _apiProbe;
+    _apiProbe = (async () => {
+      const candidates = [];
+      if (location.protocol !== 'file:') candidates.push(''); // 当前 origin
+      candidates.push(REMOTE_API);
+      if (FALLBACK_API !== REMOTE_API) candidates.push(FALLBACK_API);
+      for (const base of candidates) {
+        try {
+          const resp = await fetch(base + '/api/health', { method: 'GET' });
+          if (!resp.ok) continue;
+          let data = null;
+          try {
+            data = await resp.json();
+          } catch (_) {
+            data = null;
+          }
+          // 必须是后端健康 JSON，避免被 3000 静态预览服务器的“200 HTML 页面”误判。
+          if (data && data.ok === true) {
+            API_BASE = base;
+            return API_BASE;
+          }
+        } catch (_) {}
+      }
+      API_BASE = null;
+      return API_BASE;
+    })();
+    return _apiProbe;
+  }
 
   const LS = {
     user: 'qihe_user_id',
@@ -168,7 +201,9 @@
   async function downloadGeneratedContract(content, filename, btn) {
     try {
       if (btn) btn.disabled = true;
-      const resp = await fetch(API_BASE + '/api/export-docx', {
+      const base = await ensureApiBase();
+      if (base === null) throw new Error('后端服务未连接');
+      const resp = await fetch(base + '/api/export-docx', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content, filename }),
@@ -185,8 +220,10 @@
   async function downloadTemplate(id, btn) {
     try {
       if (btn) btn.disabled = true;
+      const base = await ensureApiBase();
+      if (base === null) throw new Error('后端服务未连接');
       const a = document.createElement('a');
-      a.href = API_BASE + '/api/templates/' + encodeURIComponent(id) + '/download';
+      a.href = base + '/api/templates/' + encodeURIComponent(id) + '/download';
       a.download = '';
       document.body.appendChild(a);
       a.click();
@@ -202,6 +239,65 @@
 
   const DIFY_TEMP_FAILURE_RE = /系统暂时无法处理您的请求|请稍后重试或重新描述您的问题/;
 
+  async function streamFromReader(reader, onEvent) {
+    const decoder = new TextDecoder();
+    let buffer = '';
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+      for (const line of lines) {
+        const s = line.trim();
+        if (!s.startsWith('data:')) continue;
+        const payload = s.slice(5).trim();
+        if (!payload || payload === '[DONE]') continue;
+        let evt;
+        try {
+          evt = JSON.parse(payload);
+        } catch {
+          continue;
+        }
+        onEvent(evt);
+      }
+    }
+  }
+
+  async function sendDirectToDify(query) {
+    const resp = await fetch(DIRECT_DIFY_BASE + '/chat-messages', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + DIRECT_DIFY_API_KEY,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        inputs: {},
+        query,
+        response_mode: 'streaming',
+        conversation_id: state.conversationId || '',
+        user: state.userId || 'anonymous',
+      }),
+    });
+    if (!resp.ok || !resp.body) {
+      throw new Error('Dify 直连失败 (' + resp.status + ')');
+    }
+    let raw = '';
+    await streamFromReader(resp.body.getReader(), (evt) => {
+      if (evt.conversation_id) state.conversationId = evt.conversation_id;
+      if (evt.event === 'error') throw new Error(evt.message || '生成出错');
+      if (typeof evt.answer === 'string') {
+        raw += evt.answer;
+        window.dispatchEvent(
+          new CustomEvent('qihe:stream', {
+            detail: { text: liveDisplay(raw), raw, done: false },
+          })
+        );
+      }
+    });
+    return raw;
+  }
+
   // ===== SSE 流式对话 =====
   async function sendChatMessage(query, retryCount = 0, bypassBusy = false) {
     if (!query || (state.busy && !bypassBusy)) return;
@@ -209,51 +305,32 @@
     let raw = '';
 
     try {
-      const resp = await fetch(API_BASE + '/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          query,
-          conversationId: state.conversationId,
-          user: state.userId,
-        }),
-      });
-
-      if (!resp.ok || !resp.body) throw new Error('请求失败 (' + resp.status + ')');
-
-      const reader = resp.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
-
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop();
-        for (const line of lines) {
-          const s = line.trim();
-          if (!s.startsWith('data:')) continue;
-          const payload = s.slice(5).trim();
-          if (!payload || payload === '[DONE]') continue;
-          let evt;
-          try {
-            evt = JSON.parse(payload);
-          } catch {
-            continue;
-          }
+      const base = await ensureApiBase();
+      if (base !== null) {
+        const resp = await fetch(base + '/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            query,
+            conversationId: state.conversationId,
+            user: state.userId,
+          }),
+        });
+        if (!resp.ok || !resp.body) throw new Error('请求失败 (' + resp.status + ')');
+        await streamFromReader(resp.body.getReader(), (evt) => {
           if (evt.conversation_id) state.conversationId = evt.conversation_id;
           if (evt.event === 'error') throw new Error(evt.message || '生成出错');
           if (typeof evt.answer === 'string') {
             raw += evt.answer;
-            // 触发自定义事件，由 UI 层监听
             window.dispatchEvent(
               new CustomEvent('qihe:stream', {
                 detail: { text: liveDisplay(raw), raw, done: false },
               })
             );
           }
-        }
+        });
+      } else {
+        raw = await sendDirectToDify(query);
       }
 
       // 流式完成
@@ -337,7 +414,9 @@
       return downloadTemplate(id, btn);
     },
     async getTemplate(id) {
-      const resp = await fetch(API_BASE + '/api/templates/' + encodeURIComponent(id));
+      const base = await ensureApiBase();
+      if (base === null) throw new Error('后端服务未连接');
+      const resp = await fetch(base + '/api/templates/' + encodeURIComponent(id));
       if (!resp.ok) throw new Error('模板加载失败');
       return resp.json();
     },

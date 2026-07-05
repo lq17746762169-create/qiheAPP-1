@@ -1,5 +1,5 @@
 (function(){'use strict';
-console.log('[qihe bridge] 版本 nav-fix-20260705k 已加载（分流返回+Markdown+去灵动岛）');
+console.log('[qihe bridge] 版本 nav-fix-20260705u 已加载（分流返回+Markdown+去灵动岛）');
 // 「查看风险详情」蓝色文字按钮样式
 var _s=document.createElement('style');
 _s.textContent='#__qihe_review_detail_btn{display:block!important;margin-top:10px!important;padding-top:9px!important;border-top:1px solid rgba(37,99,235,.14)!important;background:transparent!important;color:#2563eb!important;font-size:14px!important;font-weight:600!important;text-align:left!important;cursor:pointer!important;-webkit-user-select:none;user-select:none;line-height:1.4;white-space:nowrap}#__qihe_review_detail_btn::after{content:"\\203A";margin-left:5px;font-size:17px;line-height:1}#__qihe_review_detail_btn:active{opacity:.55}';
@@ -61,7 +61,25 @@ function hideDynamicIsland(){try{
 }catch(_){}}
 
 // ===== 解析 Dify 审查报告（三段式：标签+标题 → 条款原文 → 风险描述）=====
-function parseReview(raw){var r=[],bs=raw.split(/\n###\s*\[/);for(var i=1;i<bs.length;i++){var b='['+bs[i],m=b.match(/^\[(高风险|中风险|低风险)\]\s*(.+)/);if(!m)continue;var lv={'高风险':'high','中风险':'mid','低风险':'low'},hd=(m[2]||'').trim(),bm=b.match(/>\s*条款原文[：:]\s*([\s\S]*?)(?=\n\s*风险描述|\n###|$)/),body=bm?bm[1].trim():'',dm=b.match(/风险描述[：:]\s*([\s\S]*?)(?=\n---|\n###\s*\[|\n\*\*律师|$)/),desc=dm?dm[1].trim():'';r.push({heading:hd,body:body,level:lv[m[1]]||'high',riskText:desc});}return r}
+function parseReview(raw){
+  raw=String(raw||'').replace(/\r\n/g,'\n');
+  var r=[],bs=raw.split(/(?:^|\n)###\s*\[/);
+  for(var i=1;i<bs.length;i++){
+    var b='['+bs[i],m=b.match(/^\[(高风险|中风险|低风险)\]\s*([^\n]*)/);
+    if(!m)continue;
+    var lv={'高风险':'high','中风险':'mid','低风险':'low'},hd=(m[2]||'').trim();
+    var bm=b.match(/(?:^|\n)\s*(?:>+\s*)?(?:条款原文|原文引用|引用原文|相关条款|合同原文)\s*[：:]\s*([\s\S]*?)(?=\n\s*(?:>+\s*)?(?:风险描述|风险说明)\s*[：:]|\n###\s*\[|\n---|$)/);
+    var body=bm?bm[1].trim():'';
+    if(!body){
+      // 兼容仅用引用块写法：在“风险描述”前抓取连续引用行作为原文。
+      var qb=b.match(/\n((?:\s*>\s*.+\n?){1,10})(?=\s*(?:风险描述|风险说明)\s*[：:])/);
+      if(qb)body=(qb[1]||'').replace(/^\s*>\s?/gm,'').trim();
+    }
+    var dm=b.match(/(?:风险描述|风险说明)[：:]\s*([\s\S]*?)(?=\n---|\n###\s*\[|\n\*\*律师|$)/),desc=dm?dm[1].trim():'';
+    r.push({heading:hd,body:body,level:lv[m[1]]||'high',riskText:desc});
+  }
+  return r;
+}
 function isReview(t){return /整体风险总结|风险明细|\[高风险\]|\[中风险\]|\[低风险\]/.test(t)}
 // 提取「整体风险概括」，作为聊天页只展示的那一段。
 // 兼容两种真实输出：带「## 整体风险总结」标题，或直接以概括段落开头（模型常省略标题）。
@@ -79,33 +97,60 @@ function extractSummary(raw){
 // 从不读取风险等级。这里按解析出的等级顺序，逐个把标签文字与配色改对。
 // 只有两级：高风险→红，低风险→黄（非 high 一律按低风险处理）。
 var RISK_STYLE={
-  high:{t:'高风险',c:'#dc2626',bg:'#fef2f2'},
-  low:{t:'低风险',c:'#eab308',bg:'#fefce8'},
+  high:{t:'高风险',bg:'#dc2626',fg:'#ffffff'},
+  low:{t:'低风险',bg:'#facc15',fg:'#422006'},
 };
 function resetReviewLabelStyles(){try{
   var ts=document.querySelectorAll('[data-qihe-risk-text]'),bs=document.querySelectorAll('[data-qihe-risk-box]'),cs=document.querySelectorAll('[data-qihe-risk-card]');
   for(var i=0;i<ts.length;i++){var t=ts[i];t.style.removeProperty('color');t.removeAttribute('data-qihe-risk-text');}
-  for(var j=0;j<bs.length;j++){var b=bs[j];b.style.removeProperty('background-color');b.removeAttribute('data-qihe-risk-box');}
+  for(var j=0;j<bs.length;j++){var b=bs[j];b.style.removeProperty('background-color');b.style.removeProperty('display');b.style.removeProperty('padding');b.style.removeProperty('border-radius');b.style.removeProperty('font-size');b.style.removeProperty('font-weight');b.style.removeProperty('line-height');b.style.removeProperty('letter-spacing');b.style.removeProperty('box-shadow');b.removeAttribute('data-qihe-risk-box');}
   for(var k=0;k<cs.length;k++){var c=cs[k];c.style.removeProperty('border-left-color');c.style.removeProperty('background');c.removeAttribute('data-qihe-risk-card');}
 }catch(_){}}
 function styleReviewLabels(){try{
   var I=window._qiheActiveInstance;
   if(!I||!I.state||I.state.review!=='detail')return;
+  // 仅在「合同风险」详情容器中查找，避免误改聊天气泡。
+  var scope=null,allTop=document.querySelectorAll('*');
+  for(var si=0;si<allTop.length;si++){
+    var top=allTop[si],txt=(top.textContent||'');
+    if(!top.offsetParent)continue;
+    if(txt.indexOf('合同风险')>=0&&/(高风险|中风险|低风险)/.test(txt)){scope=top;break;}
+  }
+  if(!scope)return;
   var levels=(I.clauseData||[]).map(function(c){return c.level==='high'?'high':'low'});
-  if(!levels.length)return;
   // 收集当前可见的风险标签叶子（文本为 高/中/低 风险），按文档顺序 = 风险条目顺序
-  var labels=[],all=document.querySelectorAll('*');
+  var labels=[],all=scope.querySelectorAll('*');
   for(var i=0;i<all.length;i++){var el=all[i];if(el.children.length)continue;var t=(el.textContent||'').trim();if(t==='高风险'||t==='中风险'||t==='低风险'){var r=el.getBoundingClientRect();if(r.width>0&&el.offsetParent)labels.push(el);}}
-  for(var j=0;j<labels.length&&j<levels.length;j++){
-    var s=RISK_STYLE[levels[j]]||RISK_STYLE.high,el=labels[j];
+  if(!labels.length)return;
+  for(var j=0;j<labels.length;j++){
+    var el=labels[j],raw=(el.textContent||'').trim();
+    // clauseData 缺失时，按当前标签文字回退判断，保证重复进入也能稳定着色。
+    var lv=levels[j]||(/^高风险$/.test(raw)?'high':'low');
+    var s=RISK_STYLE[lv]||RISK_STYLE.low;
     if(el.textContent.trim()!==s.t)el.textContent=s.t;
-    el.style.setProperty('color','#fff','important');
+    // 单层胶囊标签：只保留一个底色，避免多层色块叠加。
+    el.style.setProperty('color',s.fg,'important');
+    el.style.setProperty('background-color',s.bg,'important');
+    el.style.setProperty('display','inline-block','important');
+    el.style.setProperty('padding','3px 10px','important');
+    el.style.setProperty('border-radius','999px','important');
+    el.style.setProperty('font-size','12px','important');
+    el.style.setProperty('font-weight','700','important');
+    el.style.setProperty('line-height','1.25','important');
+    el.style.setProperty('letter-spacing','0','important');
+    el.style.setProperty('box-shadow','none','important');
     el.setAttribute('data-qihe-risk-text','1');
-    // 标签胶囊背景：最近的带背景色祖先（含自身）
-    var box=el,hop=0;while(box&&hop<4){var b=getComputedStyle(box).backgroundColor;if(b&&b!=='rgba(0, 0, 0, 0)')break;box=box.parentElement;hop++;}
-    if(box){box.style.setProperty('background-color',s.c,'important');box.setAttribute('data-qihe-risk-box','1');}
-    // 风险卡片左边框 + 浅色底
-    var card=el,h2=0;while(card&&h2<6){var st=(card.getAttribute&&card.getAttribute('style'))||'';if(/border-left/.test(st)){card.style.setProperty('border-left-color',s.c,'important');card.style.setProperty('background',s.bg,'important');card.setAttribute('data-qihe-risk-card','1');break;}card=card.parentElement;h2++;}
+    el.setAttribute('data-qihe-risk-box','1');
+    // 清掉标签外层小容器底色，防止“文字底色 + 容器底色”叠加。
+    var p=el.parentElement,h=0;
+    while(p&&h<3){
+      var r=p.getBoundingClientRect(),bg=getComputedStyle(p).backgroundColor||'';
+      if(r.width<=180&&r.height<=46&&bg!=='rgba(0, 0, 0, 0)'){
+        p.style.setProperty('background-color','transparent','important');
+        p.style.setProperty('box-shadow','none','important');
+      }
+      p=p.parentElement;h++;
+    }
   }
 }catch(_){}}
 
@@ -145,7 +190,8 @@ function injectReviewBtn(){
 function clearReviewBtn(){var I=window._qiheActiveInstance;if(I)I._reviewBtnPending=false;var b=document.getElementById('__qihe_review_detail_btn');if(b)b.remove();}
 
 var _mo=new MutationObserver(function(){var I=window._qiheActiveInstance;if(I&&I.state&&I.state.review==='detail')styleReviewLabels();else resetReviewLabelStyles();injectReviewBtn();applyMarkdownDom();hideDynamicIsland();});
-_mo.observe(document.documentElement,{childList:true,subtree:true,attributes:true});
+// 仅监听节点增删，避免与样式/属性写入形成递归触发导致页面卡死。
+_mo.observe(document.documentElement,{childList:true,subtree:true});
 
 function hook(I){if(H.has(I))return;H.add(I);window._qiheActiveInstance=I;
 var oSH=I._sendHome,oSC=I._sendChat,oEW=I._exportWord,oSR=I._startReview;
@@ -203,7 +249,7 @@ if(d.done){I.setState({thinking:false,reviewLoading:false});
 window.addEventListener('qihe:error',function(e){var I=window._qiheActiveInstance;if(I){I.setState({thinking:false,busy:false,reviewLoading:false});I._push('ai','抱歉，出错了：'+(e.detail.message||'请稍后重试'))}});
 (function w(n){n=n||0;if(n>100)return;if(window.DCLogic&&window.DCLogic.prototype&&window.DCLogic.prototype.setState){var o=window.DCLogic.prototype.setState;window.DCLogic.prototype.setState=function(u){hook(this);
   // 记录进入详情页前是否在聊天页：聊天入口进详情应回聊天；最近记录进详情应回首页。
-  if(u&&typeof u==='object'&&u.review==='detail'){this.__reviewBackToChat=!!(this.state&&this.state.chatOpen)}
+  if(u&&typeof u==='object'&&u.review==='detail'){this.__reviewBackToChat=!!(this.state&&this.state.chatOpen);setTimeout(styleReviewLabels,40);setTimeout(styleReviewLabels,180);setTimeout(styleReviewLabels,520)}
   if(u&&typeof u==='object'&&u.review===null&&this.state&&this.state.review==='detail'){
     var toChat=!!this.__reviewBackToChat;
     this.__reviewBackToChat=false;
