@@ -1,10 +1,17 @@
 (function(){'use strict';
-console.log('[qihe bridge] 版本 nav-fix-20260705u 已加载（分流返回+Markdown+去灵动岛）');
+console.log('[qihe bridge] 版本 nav-fix-20260705ac 已加载（文件审查接入Dify+概括按钮流程+模板离线兜底）');
 // 「查看风险详情」蓝色文字按钮样式
 var _s=document.createElement('style');
 _s.textContent='#__qihe_review_detail_btn{display:block!important;margin-top:10px!important;padding-top:9px!important;border-top:1px solid rgba(37,99,235,.14)!important;background:transparent!important;color:#2563eb!important;font-size:14px!important;font-weight:600!important;text-align:left!important;cursor:pointer!important;-webkit-user-select:none;user-select:none;line-height:1.4;white-space:nowrap}#__qihe_review_detail_btn::after{content:"\\203A";margin-left:5px;font-size:17px;line-height:1}#__qihe_review_detail_btn:active{opacity:.55}';
 document.head.appendChild(_s);
 var H=new WeakSet();
+
+// 捕获用户选择的真实文件对象（应用原生只保留文件名，无法读取内容）。
+// 用捕获阶段监听所有 file input 的 change，把最近一次选择的文件存起来供审查使用。
+window.__qiheLastFile=null;
+document.addEventListener('change',function(e){
+  try{var t=e.target;if(t&&t.tagName==='INPUT'&&t.type==='file'&&t.files&&t.files.length){window.__qiheLastFile=t.files[0];}}catch(_){}
+},true);
 
 function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 function sanitizeHtmlBasic(html){
@@ -156,6 +163,7 @@ function styleReviewLabels(){try{
 
 // ===== 打开现有的审查风险详情页 =====
 function openReviewDetail(){var I=window._qiheActiveInstance;if(!I||typeof I.setState!=='function')return;
+  I.__allowOpenDetailOnce=true; // 仅放行这次用户主动点击进入详情
   I.__reviewBackToChat=!!(I.state&&I.state.chatOpen); // 聊天入口进详情：返回应回聊天
   I.setState({review:'detail',activeDoc:'review',reviewTab:'text',chatOpen:false});
   setTimeout(styleReviewLabels,60);setTimeout(styleReviewLabels,300);setTimeout(styleReviewLabels,700);
@@ -202,10 +210,23 @@ I._exportWord=function(){if(window.QiheAPI&&this._currentContractContent){window
 I._startReview=function(name){
   if(!window.QiheAPI)return oSR.call(this,name);
   clearReviewBtn();
-  // 审查统一走应用原生流程（含文件上传解析链路），避免自定义提示词干扰 Dify 工作流判断。
-  // 仅在进入审查前清理会话，降低上一轮上下文串扰概率。
+  var self=this,file=window.__qiheLastFile||null;
+  // 期望进入「概括+查看合同风险按钮」流程，拦截自动跳详情。
+  this.__expectSummaryFlow=true;
+  this.__allowOpenDetailOnce=false;
   if(typeof window.QiheAPI.clearHistory==='function')window.QiheAPI.clearHistory();
-  return oSR.call(this,name);
+  // 展示原生「审查中」加载页；文字进度仅做视觉过渡，真正结束由 Dify 流式 done 控制。
+  this.setState({reviewLoading:true,loadingStep:'正在解析文件结构…',chatOpen:false,review:null});
+  clearTimeout(this._qhL1);clearTimeout(this._qhL2);
+  this._qhL1=setTimeout(function(){if(self.state&&self.state.reviewLoading)self.setState({loadingStep:'识别合同条款与主体…'});},1400);
+  this._qhL2=setTimeout(function(){if(self.state&&self.state.reviewLoading)self.setState({loadingStep:'比对法规、标注风险点…'});},3200);
+  if(file&&typeof window.QiheAPI.reviewWithFile==='function'){
+    window.__qiheLastFile=null;
+    window.QiheAPI.reviewWithFile(file);
+  }else{
+    // 拿不到文件对象时，退回按文件名请求，至少恢复旧的审查流程。
+    window.QiheAPI.send('请审查以下合同文件：'+(name||'合同文件'));
+  }
 };
 // 返回导航：详情页 → 聊天页 → 首页（不再从聊天页误跳详情页）
 if(!I.__b){I.__b=true;var oB=I.backHome;I.backHome=function(){
@@ -223,7 +244,7 @@ if(!I.__b){I.__b=true;var oB=I.backHome;I.backHome=function(){
 
 window.addEventListener('qihe:stream',function(e){
 var d=e.detail||{},I=window._qiheActiveInstance;if(!I||typeof I.setState!=='function')return;
-if(d.done){I.setState({thinking:false,reviewLoading:false});
+if(d.done){clearTimeout(I._qhL1);clearTimeout(I._qhL2);I.setState({thinking:false,reviewLoading:false});
  if(d.contract){I.contractText=d.contract.body;I.contractArticles=d.contract.articles;I._currentContractContent=d.contract.body;I._currentContractName=d.contract.name;I.setState(function(s){return{messages:s.messages.concat([{role:'ai',text:'已根据你的需求拟定《'+d.contract.name+'》，请查看全文。点击「导出合同」保存到本地：'},{role:'ai',type:'doc'}])}})}
  else if(d.template){if(window.QiheAPI)window.QiheAPI.getTemplate(d.template).then(function(dt){I.contractText=dt.previewHtml||'';I._currentContractName=dt.name||d.template;I.setState(function(s){return{messages:s.messages.concat([{role:'ai',text:'为你调取标准合同模板《'+(dt.name||d.template)+'》：'},{role:'ai',type:'doc'}])}})}).catch(function(){I._push('ai','模板加载失败')})}
  else if(isReview(d.raw||'')){var cs=parseReview(d.raw||'');if(cs.length>0){
@@ -232,26 +253,40 @@ if(d.done){I.setState({thinking:false,reviewLoading:false});
    I.reviewDocs.review={title:'审查报告',risks:cs.map(function(c){return{clauseRef:c.heading,body:c.body,riskText:c.riskText,level:c.level}})};
    var summary=(extractSummary(d.raw||'')||(d.text||'').trim());
    I._reviewSummary=summary;I._reviewBtnPending=true;
-   // 聊天页最后一条 AI 消息只保留「整体风险概括」这一段
-   var ms=(I.state.messages||[]).slice();for(var i=ms.length-1;i>=0;i--){if(ms[i].role==='ai'&&!ms[i].type){ms[i]=Object.assign({},ms[i],{text:summary});break}}
+   // 聊天页最后一条 AI 消息只保留「整体风险概括」这一段；若无则新增一条。
+   var ms=(I.state.messages||[]).slice(),found=false;for(var i=ms.length-1;i>=0;i--){if(ms[i].role==='ai'&&!ms[i].type){ms[i]=Object.assign({},ms[i],{text:summary});found=true;break}}
+   if(!found)ms=ms.concat([{role:'ai',text:summary}]);
    // 停留在聊天页展示概括，不自动跳详情页；由用户点「查看风险详情」进入
    I.setState({reviewLoading:false,thinking:false,review:null,chatOpen:true,messages:ms});
+   I.__expectSummaryFlow=false;
    setTimeout(injectReviewBtn,120);setTimeout(injectReviewBtn,500);setTimeout(injectReviewBtn,1200);
    setTimeout(applyMarkdownDom,100);setTimeout(applyMarkdownDom,400);
- }else{I.setState({reviewLoading:false,thinking:false});if(d.text)I._push('ai',d.text)}}
- else if(d.text){
+ }else{I.__expectSummaryFlow=false;I.setState({reviewLoading:false,thinking:false,chatOpen:true});if(d.text&&String(d.text).trim())I._push('ai',d.text)}}
+ else if(d.text&&String(d.text).trim()){
+  if(I.__expectSummaryFlow){I.__expectSummaryFlow=false;if(!I.state.chatOpen)I.setState({chatOpen:true});}
   var msd=I.state.messages||[],lid=msd.length-1;
   if(lid>=0&&msd[lid].role==='ai'&&!msd[lid].type){msd=msd.slice();msd[lid]=Object.assign({},msd[lid],{text:d.text});I.setState({messages:msd});}
   else I._push('ai',d.text);
  }
-}else{I.setState({thinking:false});var ms=I.state.messages||[],li=ms.length-1;if(li>=0&&ms[li].role==='ai'&&!ms[li].type){ms[li]=Object.assign({},ms[li],{text:d.text})}else I._push('ai',d.text);setTimeout(applyMarkdownDom,40)}
+}else if(d.text&&String(d.text).trim()){I.setState({thinking:false});var ms=I.state.messages||[],li=ms.length-1;if(li>=0&&ms[li].role==='ai'&&!ms[li].type){ms[li]=Object.assign({},ms[li],{text:d.text})}else I._push('ai',d.text);setTimeout(applyMarkdownDom,40)}
 });
-window.addEventListener('qihe:error',function(e){var I=window._qiheActiveInstance;if(I){I.setState({thinking:false,busy:false,reviewLoading:false});I._push('ai','抱歉，出错了：'+(e.detail.message||'请稍后重试'))}});
+window.addEventListener('qihe:error',function(e){var I=window._qiheActiveInstance;if(I){clearTimeout(I._qhL1);clearTimeout(I._qhL2);I.setState({thinking:false,busy:false,reviewLoading:false});I._push('ai','抱歉，出错了：'+(e.detail.message||'请稍后重试'))}});
 (function w(n){n=n||0;if(n>100)return;if(window.DCLogic&&window.DCLogic.prototype&&window.DCLogic.prototype.setState){var o=window.DCLogic.prototype.setState;window.DCLogic.prototype.setState=function(u){hook(this);
   // 记录进入详情页前是否在聊天页：聊天入口进详情应回聊天；最近记录进详情应回首页。
-  if(u&&typeof u==='object'&&u.review==='detail'){this.__reviewBackToChat=!!(this.state&&this.state.chatOpen);setTimeout(styleReviewLabels,40);setTimeout(styleReviewLabels,180);setTimeout(styleReviewLabels,520)}
+  if(u&&typeof u==='object'&&u.review==='detail'){
+    // 非用户主动点击时，拦截“自动跳详情”并留在聊天页，保持先看概括+按钮的流程。
+    if(!this.__allowOpenDetailOnce&&this.state&&this.state.chatOpen&&(this._reviewBtnPending||this.__expectSummaryFlow)){
+      u=Object.assign({},u,{review:null,chatOpen:true});
+      setTimeout(injectReviewBtn,80);setTimeout(injectReviewBtn,300);setTimeout(injectReviewBtn,700);
+      return o.call(this,u);
+    }
+    this.__allowOpenDetailOnce=false;
+    this.__reviewBackToChat=!!(this.state&&this.state.chatOpen);
+    setTimeout(styleReviewLabels,40);setTimeout(styleReviewLabels,180);setTimeout(styleReviewLabels,520)
+  }
   if(u&&typeof u==='object'&&u.review===null&&this.state&&this.state.review==='detail'){
-    var toChat=!!this.__reviewBackToChat;
+    // 若调用方（如 backHome）已显式给出 chatOpen，则尊重其决定，避免重复消费标记导致误跳首页。
+    var toChat=(typeof u.chatOpen!=='undefined')?!!u.chatOpen:!!this.__reviewBackToChat;
     this.__reviewBackToChat=false;
     u=Object.assign({},u,{chatOpen:toChat});
     if(toChat){setTimeout(injectReviewBtn,80);setTimeout(injectReviewBtn,300);setTimeout(injectReviewBtn,700);}

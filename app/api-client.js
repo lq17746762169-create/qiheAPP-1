@@ -161,14 +161,25 @@
 
   // ===== 标记检测 =====
   const CONTRACT_RE = /<<<\s*CONTRACT_START\s*>>>([\s\S]*?)<<<\s*CONTRACT_END\s*>>>/i;
-  const TEMPLATE_RE = /<<<\s*TEMPLATE\s*:\s*([a-zA-Z0-9_-]+)\s*>>>/i;
-  const TEMPLATE_RE_GLOBAL = /<<<\s*TEMPLATE\s*:\s*([a-zA-Z0-9_-]+)\s*>>>/gi;
+  const TEMPLATE_RE = /<<<\s*TEMPLATE\s*[：:]\s*([^>\r\n]+?)\s*>>>/i;
+  const TEMPLATE_RE_GLOBAL = /<<<\s*TEMPLATE\s*[：:]\s*([^>\r\n]+?)\s*>>>/gi;
 
   function normalizeMarkers(text) {
     return String(text || '')
-      .replace(/&lt;&lt;&lt;\s*CONTRACT_START\s*&gt;&gt;&gt;/gi, '<<<CONTRACT_START>>>')
-      .replace(/&lt;&lt;&lt;\s*CONTRACT_END\s*&gt;&gt;&gt;/gi, '<<<CONTRACT_END>>>')
-      .replace(/&lt;&lt;&lt;\s*TEMPLATE\s*:\s*([a-zA-Z0-9_-]+)\s*&gt;&gt;&gt;/gi, '<<<TEMPLATE:$1>>>');
+      .replace(/&lt;/gi, '<')
+      .replace(/&gt;/gi, '>')
+      .replace(/<<<\s*CONTRACT_START\s*>>>/gi, '<<<CONTRACT_START>>>')
+      .replace(/<<<\s*CONTRACT_END\s*>>>/gi, '<<<CONTRACT_END>>>')
+      .replace(/<<<\s*TEMPLATE\s*[：:]\s*([^>\r\n]+?)\s*>>>/gi, '<<<TEMPLATE:$1>>>');
+  }
+
+  function normalizeTemplateId(id) {
+    const raw = String(id || '').trim().replace(/^['"`]+|['"`]+$/g, '');
+    const lowered = raw.toLowerCase();
+    if (!raw) return '';
+    if (lowered === 'housing_lease' || lowered === 'housing-lease' || lowered === 'housinglease') return 'housing_lease';
+    if (raw === '房屋租赁合同' || raw === '租赁合同') return 'housing_lease';
+    return lowered.replace(/\s+/g, '_').replace(/[^a-z0-9_-]/g, '');
   }
 
   function liveDisplay(raw) {
@@ -217,13 +228,18 @@
     }
   }
 
+  // 优先走后端下载；后端不可用时回退到随包静态 docx（保证封装后/无后端也能下载）。
   async function downloadTemplate(id, btn) {
     try {
       if (btn) btn.disabled = true;
+      const normalizedId = normalizeTemplateId(id) || id;
       const base = await ensureApiBase();
-      if (base === null) throw new Error('后端服务未连接');
       const a = document.createElement('a');
-      a.href = base + '/api/templates/' + encodeURIComponent(id) + '/download';
+      if (base !== null) {
+        a.href = base + '/api/templates/' + encodeURIComponent(normalizedId) + '/download';
+      } else {
+        a.href = 'templates/' + encodeURIComponent(normalizedId) + '.docx';
+      }
       a.download = '';
       document.body.appendChild(a);
       a.click();
@@ -264,7 +280,7 @@
     }
   }
 
-  async function sendDirectToDify(query) {
+  async function sendDirectToDify(query, files) {
     const resp = await fetch(DIRECT_DIFY_BASE + '/chat-messages', {
       method: 'POST',
       headers: {
@@ -277,6 +293,7 @@
         response_mode: 'streaming',
         conversation_id: state.conversationId || '',
         user: state.userId || 'anonymous',
+        files: files && files.length ? files : undefined,
       }),
     });
     if (!resp.ok || !resp.body) {
@@ -288,14 +305,93 @@
       if (evt.event === 'error') throw new Error(evt.message || '生成出错');
       if (typeof evt.answer === 'string') {
         raw += evt.answer;
+        const live = liveDisplay(raw);
+        if (!live.trim()) return;
         window.dispatchEvent(
           new CustomEvent('qihe:stream', {
-            detail: { text: liveDisplay(raw), raw, done: false },
+            detail: { text: live, raw, done: false },
           })
         );
       }
     });
     return raw;
+  }
+
+  // 判断 Dify 文件类型：图片走 image，其余（Word/PDF/文本等）走 document。
+  function difyFileType(file) {
+    const name = ((file && file.name) || '').toLowerCase();
+    const mime = ((file && file.type) || '').toLowerCase();
+    if (mime.indexOf('image/') === 0 || /\.(jpg|jpeg|png|gif|webp|svg)$/.test(name)) return 'image';
+    return 'document';
+  }
+
+  // 上传文件到 Dify，返回 upload_file_id（供 chat-messages 的 files 引用）。
+  async function uploadFileToDify(file) {
+    const fd = new FormData();
+    fd.append('file', file, file.name || 'upload');
+    fd.append('user', state.userId || 'anonymous');
+    const resp = await fetch(DIRECT_DIFY_BASE + '/files/upload', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + DIRECT_DIFY_API_KEY },
+      body: fd,
+    });
+    if (!resp.ok) {
+      const t = await resp.text().catch(() => '');
+      throw new Error('文件上传失败 (' + resp.status + '): ' + t.slice(0, 200));
+    }
+    const data = await resp.json();
+    if (!data || !data.id) throw new Error('文件上传失败：无返回 id');
+    return data.id;
+  }
+
+  // 流式结束后的统一收尾：解析合同/模板/审查标记并派发 done 事件。
+  function dispatchStreamDone(raw, query) {
+    const markerRaw = normalizeMarkers(raw);
+    const contract = markerRaw.match(CONTRACT_RE);
+    let tpl = markerRaw.match(TEMPLATE_RE);
+    let templateId = tpl ? normalizeTemplateId(tpl[1]) : '';
+    if (!raw && /模板/.test(query || '')) templateId = 'housing_lease';
+    const intro = markerRaw.replace(CONTRACT_RE, '').replace(TEMPLATE_RE_GLOBAL, '').trim();
+    const finalText = intro || (contract ? '好的，已根据你的需求为你拟定合同，请查看全文。' : raw);
+    window.dispatchEvent(
+      new CustomEvent('qihe:stream', {
+        detail: {
+          text: finalText,
+          raw,
+          done: true,
+          contract: contract
+            ? { body: contract[1].trim(), name: (contract[1].trim().match(/^#\s+(.+)$/m) || ['', '合同'])[1].trim(), articles: countArticles(contract[1].trim()) }
+            : null,
+          template: templateId || null,
+        },
+      })
+    );
+    return finalText;
+  }
+
+  // 带文件的审查：上传文件到 Dify，作为 sys.files 附加到对话中，走文档抽取/视觉识别。
+  async function reviewWithFile(file, query, retried) {
+    if (state.busy && !retried) return;
+    state.busy = true;
+    let raw = '';
+    try {
+      const uploadId = await uploadFileToDify(file);
+      const files = [{ type: difyFileType(file), transfer_method: 'local_file', upload_file_id: uploadId }];
+      const q = query || '请审查我上传的这份合同文件，识别其中的风险条款，按规则输出整体风险总结与逐条风险明细。';
+      raw = await sendDirectToDify(q, files);
+      const finalText = dispatchStreamDone(raw, q);
+      if (DIFY_TEMP_FAILURE_RE.test(finalText) && !retried) {
+        state.conversationId = '';
+        persist();
+        return reviewWithFile(file, query, true);
+      }
+      state.messages.push({ role: 'ai', content: raw });
+      persist();
+    } catch (err) {
+      window.dispatchEvent(new CustomEvent('qihe:error', { detail: { message: err.message || '请稍后重试' } }));
+    } finally {
+      state.busy = false;
+    }
   }
 
   // ===== SSE 流式对话 =====
@@ -322,9 +418,11 @@
           if (evt.event === 'error') throw new Error(evt.message || '生成出错');
           if (typeof evt.answer === 'string') {
             raw += evt.answer;
+            const live = liveDisplay(raw);
+            if (!live.trim()) return;
             window.dispatchEvent(
               new CustomEvent('qihe:stream', {
-                detail: { text: liveDisplay(raw), raw, done: false },
+                detail: { text: live, raw, done: false },
               })
             );
           }
@@ -337,10 +435,12 @@
       var markerRaw = normalizeMarkers(raw);
       var contract = markerRaw.match(CONTRACT_RE);
       var tpl = markerRaw.match(TEMPLATE_RE);
+      var templateId = tpl ? normalizeTemplateId(tpl[1]) : '';
 
       // 代码执行节点缩进报错兜底：Dify 无输出但用户在请求模板
       if (!raw && /模板/.test(query)) {
         tpl = ['<<<TEMPLATE:housing_lease>>>', 'housing_lease'];
+        templateId = 'housing_lease';
       }
       var intro = markerRaw
         .replace(CONTRACT_RE, '')
@@ -364,7 +464,7 @@
             contract: contract
               ? { body: contract[1].trim(), name: (contract[1].trim().match(/^#\s+(.+)$/m) || ['', '合同'])[1].trim(), articles: countArticles(contract[1].trim()) }
               : null,
-            template: tpl ? tpl[1] : null,
+            template: templateId || null,
           },
         })
       );
@@ -407,6 +507,10 @@
     clearHistory() {
       clearConversation();
     },
+    reviewWithFile(file, query) {
+      if (!state.userId) this.init();
+      return reviewWithFile(file, query);
+    },
     downloadContract(content, filename, btn) {
       return downloadGeneratedContract(content, filename, btn);
     },
@@ -414,11 +518,20 @@
       return downloadTemplate(id, btn);
     },
     async getTemplate(id) {
+      const normalizedId = normalizeTemplateId(id) || id;
       const base = await ensureApiBase();
-      if (base === null) throw new Error('后端服务未连接');
-      const resp = await fetch(base + '/api/templates/' + encodeURIComponent(id));
-      if (!resp.ok) throw new Error('模板加载失败');
-      return resp.json();
+      // 后端可用则走后端实时转换；否则回退随包静态模板 JSON（封装后/无后端也能加载）。
+      if (base !== null) {
+        try {
+          const resp = await fetch(base + '/api/templates/' + encodeURIComponent(normalizedId));
+          if (resp.ok) return await resp.json();
+        } catch (_) {}
+      }
+      try {
+        const resp = await fetch('templates/' + encodeURIComponent(normalizedId) + '.json');
+        if (resp.ok) return await resp.json();
+      } catch (_) {}
+      throw new Error('模板加载失败');
     },
     renderMarkdown,
     escapeHtml,
